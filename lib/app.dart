@@ -39,7 +39,7 @@ class _PhotoOrganizerAppState extends ConsumerState<PhotoOrganizerApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'Photo Organizer',
+      title: 'J-Pix',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       routerConfig: widget.router,

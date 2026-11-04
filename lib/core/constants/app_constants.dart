@@ -1,7 +1,7 @@
 class AppConstants {
   AppConstants._();
 
-  static const String appName = 'Photo Organizer';
+  static const String appName = 'J-Pix';
   static const String appTagline = 'Organize. Find. Discover.';
   static const String appVersion = '1.0.0';
 

@@ -232,7 +232,7 @@ class _HomeHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
-                  'Photo Organizer',
+                  'J-Pix',
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 const SizedBox(height: 3),
