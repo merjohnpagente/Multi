@@ -221,6 +221,12 @@ class _HomeHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 16, 16, 14),
       child: Row(
         children: <Widget>[
+          Image.asset(
+            'assets/images/app_logo.png',
+            width: 42,
+            height: 42,
+          ),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

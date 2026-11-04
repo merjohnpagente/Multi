@@ -65,46 +65,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                   builder: (BuildContext context, double value, Widget? child) {
                     return Transform.scale(scale: value, child: child);
                   },
-                  child: Container(
+                  child: Image.asset(
+                    'assets/images/app_logo.png',
                     width: 104,
                     height: 104,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: <Color>[
-                          AppColors.primary,
-                          AppColors.secondary,
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(32),
-                      boxShadow: <BoxShadow>[
-                        BoxShadow(
-                          color: AppColors.primary.withOpacity(0.24),
-                          blurRadius: 32,
-                          offset: const Offset(0, 16),
-                        ),
-                      ],
-                    ),
-                    child: const Stack(
-                      alignment: Alignment.center,
-                      children: <Widget>[
-                        Icon(
-                          Icons.photo_library_rounded,
-                          size: 46,
-                          color: AppColors.white,
-                        ),
-                        Positioned(
-                          right: 20,
-                          top: 20,
-                          child: Icon(
-                            Icons.auto_awesome_rounded,
-                            size: 22,
-                            color: AppColors.white,
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
                 ),
               ),
