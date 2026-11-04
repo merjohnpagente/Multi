@@ -2,19 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../features/ai_identification/ai_identification_screen.dart';
-import '../features/categories/categories_screen.dart';
-import '../features/categories/category_detail_screen.dart';
-import '../features/duplicate_finder/duplicate_finder_screen.dart';
-import '../features/favorites/favorites_screen.dart';
-import '../features/gallery/gallery_screen.dart';
-import '../features/home/home_screen.dart';
-import '../features/photo_details/photo_details_screen.dart';
-import '../features/search/search_screen.dart';
-import '../features/settings/settings_screen.dart';
-import '../features/splash/splash_screen.dart';
-import '../shared/models/app_category.dart';
-import '../shared/widgets/main_shell.dart';
+import '../../features/ai_identification/ai_identification_screen.dart';
+import '../../features/categories/categories_screen.dart';
+import '../../features/categories/category_detail_screen.dart';
+import '../../features/duplicate_finder/duplicate_finder_screen.dart';
+import '../../features/favorites/favorites_screen.dart';
+import '../../features/gallery/gallery_screen.dart';
+import '../../features/home/home_screen.dart';
+import '../../features/photo_details/photo_details_screen.dart';
+import '../../features/search/search_screen.dart';
+import '../../features/settings/settings_screen.dart';
+import '../../features/splash/splash_screen.dart';
+import '../../shared/models/app_category.dart';
+import '../../shared/widgets/main_shell.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/splash',

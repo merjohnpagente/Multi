@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/services/settings_service.dart';
 import '../../core/utilities/formatters.dart';
 import '../../shared/providers/library_provider.dart';
 import '../../shared/providers/settings_provider.dart';

@@ -217,7 +217,7 @@ class AppTheme {
         ),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: AppColors.card,
         elevation: 0,
         margin: EdgeInsets.zero,
@@ -225,7 +225,7 @@ class AppTheme {
           borderRadius: BorderRadius.circular(20),
         ),
       ),
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
         backgroundColor: AppColors.background,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
