@@ -3,7 +3,7 @@ class AppConstants {
 
   static const String appName = 'J-Pix';
   static const String appTagline = 'Organize. Find. Discover.';
-  static const String appVersion = '1.0.0';
+  static const String appVersion = '1.2.0';
 
   static const String databaseName = 'photo_organizer.db';
   static const int databaseVersion = 1;
@@ -19,7 +19,7 @@ class AppConstants {
   static const String birdModelAsset = 'assets/models/bird_classifier.tflite';
   static const String birdLabelsAsset = 'assets/models/bird_labels.txt';
 
-  static const int currentAnalysisVersion = 1;
+  static const int currentAnalysisVersion = 2;
 
   static const double defaultConfidenceThreshold = 0.35;
   static const int defaultSessionLimit = 120;

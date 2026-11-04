@@ -23,6 +23,9 @@ class AiException implements Exception {
 class AiService {
   AiService();
 
+  static const MethodChannel _visionChannel =
+      MethodChannel('photo_organizer/vision');
+
   _TfliteClassifier? _general;
   _TfliteClassifier? _plants;
   _TfliteClassifier? _birds;
@@ -43,6 +46,21 @@ class AiService {
       _loadPlants().then((_) {}),
       _loadBirds().then((_) {}),
     ]);
+  }
+
+  Future<int> _detectFaces(Uint8List bytes) async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+      return 0;
+    }
+    try {
+      final int? count = await _visionChannel.invokeMethod<int>(
+        'detectFaces',
+        <String, dynamic>{'bytes': bytes},
+      );
+      return count ?? 0;
+    } catch (_) {
+      return 0;
+    }
   }
 
   Future<_TfliteClassifier> _loadGeneral() {
@@ -112,6 +130,29 @@ class AiService {
     final List<_Prediction> generalTop = general.predict(decoded, topK: 7);
     if (generalTop.isEmpty) {
       throw AiException('The AI model could not read this image.');
+    }
+
+    final int faceCount = await _detectFaces(bytes);
+    if (faceCount > 0) {
+      stopwatch.stop();
+      final String subject = faceCount == 1
+          ? 'one person'
+          : '$faceCount people';
+      return AiIdentification(
+        primaryLabel: 'Person',
+        category: AppCategory.people,
+        subcategory: faceCount == 1 ? 'Portraits' : 'Groups',
+        confidence: 0.96,
+        description:
+            'On-device face detection found $subject in this photo. '
+            'It was sorted into People without uploading the image.',
+        suggestedFilename: suggestedFilename('Person', extension),
+        labels: const <LabelScore>[
+          LabelScore(label: 'Person', confidence: 0.96, source: 'face'),
+        ],
+        uncertain: false,
+        inferenceMs: stopwatch.elapsedMilliseconds,
+      );
     }
 
     final List<_Prediction> generalLabels =

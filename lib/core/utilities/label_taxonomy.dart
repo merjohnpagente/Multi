@@ -68,7 +68,6 @@ class LabelTaxonomy {
     'briard',
     'chow',
     'brabancon',
-    'cardigan',
     'pembroke',
     'rhodesian ridgeback',
     'afghan hound',
@@ -719,6 +718,20 @@ class LabelTaxonomy {
   };
 
   static LabelInfo describe(String rawLabel, {String source = 'general'}) {
+    if (rawLabel.trim() == 'Cardigan') {
+      return const LabelInfo(
+        category: AppCategory.animals,
+        subcategory: 'Dogs',
+        displayName: 'Cardigan',
+      );
+    }
+    if (rawLabel.trim() == 'cardigan') {
+      return const LabelInfo(
+        category: AppCategory.other,
+        subcategory: 'Objects',
+        displayName: 'Cardigan',
+      );
+    }
     final String label = rawLabel.toLowerCase().trim();
     final String display = _displayOverrides[label] ?? humanizeLabel(rawLabel);
 
