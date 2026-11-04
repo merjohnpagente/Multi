@@ -64,7 +64,7 @@ class _CategoryDetailScreenState extends ConsumerState<CategoryDetailScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
-                    color: tint.withOpacity(0.08),
+                    color: tint.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(

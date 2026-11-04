@@ -157,7 +157,7 @@ class _ScanItem extends StatelessWidget {
                 shape: BoxShape.circle,
                 boxShadow: <BoxShadow>[
                   BoxShadow(
-                    color: AppColors.primary.withOpacity(0.22),
+                    color: AppColors.primary.withValues(alpha: 0.22),
                     blurRadius: 14,
                     offset: const Offset(0, 5),
                   ),

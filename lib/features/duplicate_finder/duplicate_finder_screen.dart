@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 import '../../core/constants/app_constants.dart';
@@ -556,7 +555,7 @@ class _DuplicateGroupCard extends StatelessWidget {
                   color: (group.kind == 'exact'
                           ? AppColors.primary
                           : const Color(0xFF8B5CF6))
-                      .withOpacity(0.1),
+                      .withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -628,7 +627,7 @@ class _DuplicateGroupCard extends StatelessWidget {
                                         width: 2.5,
                                       ),
                                       color: isSelected
-                                          ? AppColors.danger.withOpacity(0.12)
+                                          ? AppColors.danger.withValues(alpha: 0.12)
                                           : Colors.transparent,
                                     ),
                                   ),

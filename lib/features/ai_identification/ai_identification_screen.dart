@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,7 +10,6 @@ import '../../core/theme/app_colors.dart';
 import '../../core/utilities/formatters.dart';
 import '../../core/utilities/slug_utils.dart';
 import '../../shared/models/ai_models.dart';
-import '../../shared/models/app_category.dart';
 import '../../shared/providers/library_provider.dart';
 import '../../shared/providers/service_providers.dart';
 import '../../shared/providers/settings_provider.dart';
@@ -472,7 +470,7 @@ class _SelectedImage extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.48),
+                  color: Colors.black.withValues(alpha: 0.48),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Row(
@@ -501,7 +499,7 @@ class _SelectedImage extends StatelessWidget {
               top: 8,
               left: 8,
               child: Material(
-                color: Colors.black.withOpacity(0.4),
+                color: Colors.black.withValues(alpha: 0.4),
                 shape: const CircleBorder(),
                 child: IconButton(
                   onPressed: busy ? null : onRemove,
@@ -525,7 +523,7 @@ class _SelectedImage extends StatelessWidget {
                 bottom: 10,
                 right: 10,
                 child: Material(
-                  color: Colors.black.withOpacity(0.42),
+                  color: Colors.black.withValues(alpha: 0.42),
                   borderRadius: BorderRadius.circular(20),
                   child: InkWell(
                     onTap: onReplace,
@@ -594,7 +592,7 @@ class _ScanningOverlayState extends State<_ScanningOverlay>
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.black.withOpacity(0.34),
+      color: Colors.black.withValues(alpha: 0.34),
         child: AnimatedBuilder(
           animation: _controller,
           builder: (BuildContext context, Widget? child) {
@@ -671,7 +669,7 @@ class _ResultCard extends StatelessWidget {
         border: Border.all(color: AppColors.border),
         boxShadow: <BoxShadow>[
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 24,
             offset: const Offset(0, 8),
           ),
@@ -875,7 +873,7 @@ class _Pill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
       decoration: BoxDecoration(
-        color: tint.withOpacity(0.09),
+        color: tint.withValues(alpha: 0.09),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -928,7 +926,7 @@ class _LabelRow extends StatelessWidget {
                 minHeight: 4,
                 backgroundColor: AppColors.card,
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  tint.withOpacity(0.65),
+                  tint.withValues(alpha: 0.65),
                 ),
               ),
             ),

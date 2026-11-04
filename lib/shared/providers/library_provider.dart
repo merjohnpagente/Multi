@@ -885,8 +885,6 @@ class LibraryController extends Notifier<LibraryState> {
     final Set<String> before = state.photos
         .map((AssetEntity asset) => asset.id)
         .toSet();
-    final List<String> ids =
-        assets.map((AssetEntity asset) => asset.id).toList(growable: false);
     final List<String> deleted = await _photo.deleteAssets(assets);
     if (deleted.isNotEmpty) {
       await _db.deletePhotoRecords(deleted);

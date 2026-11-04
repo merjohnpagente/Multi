@@ -573,7 +573,7 @@ class _QuickAction extends StatelessWidget {
                   width: 38,
                   height: 38,
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.11),
+                    color: color.withValues(alpha: 0.11),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(icon, size: 19, color: color),
@@ -662,7 +662,7 @@ class _OrganizedThumb extends StatelessWidget {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.52),
+                          color: Colors.black.withValues(alpha: 0.52),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(

@@ -471,7 +471,7 @@ class _AiSection extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: tint.withOpacity(0.1),
+                  color: tint.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(13),
                 ),
                 alignment: Alignment.center,

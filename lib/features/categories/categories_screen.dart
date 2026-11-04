@@ -173,7 +173,7 @@ class _CategoryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final Color tint = category.tint;
     return Material(
-      color: tint.withOpacity(0.07),
+      color: tint.withValues(alpha: 0.07),
       borderRadius: BorderRadius.circular(20),
       child: InkWell(
         borderRadius: BorderRadius.circular(20),

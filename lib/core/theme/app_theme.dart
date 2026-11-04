@@ -286,7 +286,7 @@ class AppTheme {
         activeTrackColor: AppColors.primary,
         inactiveTrackColor: AppColors.primarySoft,
         thumbColor: AppColors.primary,
-        overlayColor: AppColors.primary.withOpacity(0.12),
+        overlayColor: AppColors.primary.withValues(alpha: 0.12),
       ),
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: <TargetPlatform, PageTransitionsBuilder>{
