@@ -25,23 +25,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   }
 
   Future<void> _bootstrap() async {
-    final Stopwatch watch = Stopwatch()..start();
-    try {
-      await Future.wait<void>(<Future<void>>[
-        ref.read(libraryProvider.notifier).initialize(),
-        ref
-            .read(aiServiceProvider)
-            .preloadGeneral()
-            .timeout(const Duration(seconds: 20))
-            .catchError((Object _) {}),
-      ]);
-    } catch (_) {
-      // The home screen exposes a retry path if initialization fails.
-    }
-    final int remaining = 1500 - watch.elapsedMilliseconds;
-    if (remaining > 0) {
-      await Future<void>.delayed(Duration(milliseconds: remaining));
-    }
+    // Start loading in the background so the splash never blocks app launch.
+    unawaited(ref.read(libraryProvider.notifier).initialize());
+    unawaited(
+      ref
+          .read(aiServiceProvider)
+          .preloadGeneral()
+          .timeout(const Duration(seconds: 20))
+          .catchError((Object _) {}),
+    );
+    await Future<void>.delayed(const Duration(milliseconds: 500));
     if (mounted) {
       context.go('/home');
     }
@@ -60,7 +53,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
               Center(
                 child: TweenAnimationBuilder<double>(
                   tween: Tween<double>(begin: 0.86, end: 1),
-                  duration: const Duration(milliseconds: 700),
+                  duration: const Duration(milliseconds: 450),
                   curve: Curves.easeOutBack,
                   builder: (BuildContext context, double value, Widget? child) {
                     return Transform.scale(scale: value, child: child);
