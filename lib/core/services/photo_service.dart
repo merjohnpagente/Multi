@@ -95,7 +95,48 @@ class PhotoService {
       }
       page++;
     }
-    return assets;
+    // Exported folders are copies for the user; keep them out of the library.
+    return assets
+        .where((AssetEntity a) =>
+            !(a.relativePath ?? '').contains(exportRoot))
+        .toList(growable: false);
+  }
+
+  static const String exportRoot = 'J-Pix Export';
+
+  /// Copies photos into Pictures/J-Pix Export/<folder>. Returns saved count.
+  Future<int> exportToFolder(
+    List<AssetEntity> assets,
+    String folder, {
+    void Function(int done, int total)? onProgress,
+  }) async {
+    int saved = 0;
+    int done = 0;
+    for (final AssetEntity asset in assets) {
+      try {
+        final Uint8List? bytes = await asset.originBytes;
+        if (bytes != null && bytes.isNotEmpty) {
+          String name = (asset.title ?? '').trim();
+          if (name.isEmpty) {
+            name = '${asset.id}.jpg';
+          }
+          final AssetEntity? entity = await PhotoManager.editor.saveImage(
+            bytes,
+            filename: name,
+            title: name,
+            relativePath: 'Pictures/$exportRoot/$folder',
+          );
+          if (entity != null) {
+            saved++;
+          }
+        }
+      } catch (_) {
+        // Skip photos that cannot be read.
+      }
+      done++;
+      onProgress?.call(done, assets.length);
+    }
+    return saved;
   }
 
   Future<AssetEntity?> assetById(String id) async {

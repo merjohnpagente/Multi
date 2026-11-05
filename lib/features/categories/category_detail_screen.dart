@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../shared/providers/service_providers.dart';
 import '../../core/utilities/formatters.dart';
 import '../../shared/models/app_category.dart';
 import '../../shared/providers/library_provider.dart';
@@ -23,6 +24,65 @@ class CategoryDetailScreen extends ConsumerStatefulWidget {
 
 class _CategoryDetailScreenState extends ConsumerState<CategoryDetailScreen> {
   String? _subcategory;
+  bool _exporting = false;
+
+  Future<void> _download(List<AssetEntity> photos) async {
+    if (_exporting || photos.isEmpty) {
+      return;
+    }
+    final String folder = _subcategory == null
+        ? widget.category.label
+        : '${widget.category.label}/$_subcategory';
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    final bool? ok = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        title: Text('Download "$folder"?'),
+        content: Text(
+          '${photos.length} photo${photos.length == 1 ? '' : 's'} will be '
+          'copied into a folder named "$folder" in Pictures/J-Pix Export on your phone.',
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Download'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) {
+      return;
+    }
+    setState(() {
+      _exporting = true;
+    });
+    messenger.showSnackBar(
+      SnackBar(content: Text('Saving ${photos.length} photos…')),
+    );
+    final int saved =
+        await ref.read(photoServiceProvider).exportToFolder(photos, folder);
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _exporting = false;
+    });
+    messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          saved == 0
+              ? 'Could not save the photos.'
+              : 'Saved $saved photo${saved == 1 ? '' : 's'} to '
+                  'Pictures/J-Pix Export/$folder',
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,6 +112,19 @@ class _CategoryDetailScreenState extends ConsumerState<CategoryDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.category.label),
+        actions: <Widget>[
+          IconButton(
+            onPressed: _exporting ? null : () => _download(photos),
+            icon: _exporting
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.download_rounded),
+            tooltip: 'Download as folder',
+          ),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: () => ref.read(libraryProvider.notifier).refresh(),
