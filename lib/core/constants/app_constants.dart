@@ -19,7 +19,7 @@ class AppConstants {
   static const String birdModelAsset = 'assets/models/bird_classifier.tflite';
   static const String birdLabelsAsset = 'assets/models/bird_labels.txt';
 
-  static const int currentAnalysisVersion = 2;
+  static const int currentAnalysisVersion = 3;
 
   static const double defaultConfidenceThreshold = 0.35;
   static const int defaultSessionLimit = 120;

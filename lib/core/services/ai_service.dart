@@ -206,10 +206,10 @@ class AiService {
 
     final bool choosePlant = plantCandidate != null &&
         plantCandidate.confidence >= confidenceThreshold &&
-        (plantHint || plantCandidate.confidence > primary.confidence);
+        plantHint;
     final bool chooseBird = birdCandidate != null &&
         birdCandidate.confidence >= confidenceThreshold &&
-        (birdHint || birdCandidate.confidence > primary.confidence);
+        birdHint;
 
     if (choosePlant && (!chooseBird || plantCandidate.confidence >= birdCandidate.confidence)) {
       primary = plantCandidate;
@@ -219,10 +219,20 @@ class AiService {
       primarySource = 'bird';
     }
 
-    final LabelInfo primaryInfo = LabelTaxonomy.describe(
+    LabelInfo primaryInfo = LabelTaxonomy.describe(
       primary.label,
       source: primarySource,
     );
+    // Weak "animal" guesses (landscapes, rooms, whiteboards...) must not
+    // pollute the Animals category.
+    if (primaryInfo.category == AppCategory.animals &&
+        primary.confidence < 0.5) {
+      primaryInfo = LabelInfo(
+        category: AppCategory.other,
+        subcategory: 'Objects',
+        displayName: primaryInfo.displayName,
+      );
+    }
     final bool uncertain = primary.confidence < confidenceThreshold ||
         (primaryInfo.category == AppCategory.other &&
             primary.confidence < confidenceThreshold * 1.4);
