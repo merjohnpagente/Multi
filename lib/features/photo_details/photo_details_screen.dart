@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:photo_manager/photo_manager.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/services/ai_service.dart';
 import '../../core/theme/app_colors.dart';
@@ -151,103 +152,62 @@ class _PhotoDetailsScreenState extends ConsumerState<PhotoDetailsScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final LibraryState library = ref.watch(libraryProvider);
-    final PhotoRecord? record = library.recordFor(widget.assetId);
-    final bool favorite = library.favoriteIds.contains(widget.assetId);
+  Future<void> _openMaps(double lat, double lng) async {
+    final Uri uri = Uri.parse(
+      'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
+    );
+    try {
+      final bool ok =
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!ok && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No maps app available.')),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open maps.')),
+        );
+      }
+    }
+  }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Photo details'),
-        actions: <Widget>[
-          IconButton(
-            onPressed: _toggleFavorite,
-            icon: Icon(
-              favorite
-                  ? Icons.favorite_rounded
-                  : Icons.favorite_border_rounded,
-              color: favorite ? AppColors.danger : AppColors.textPrimary,
-            ),
-            tooltip: favorite ? 'Remove from favorites' : 'Add to favorites',
-          ),
-          const SizedBox(width: 4),
-        ],
-      ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _asset == null
-              ? EmptyState(
-                  icon: Icons.broken_image_outlined,
-                  title: 'Photo unavailable',
-                  message:
-                      'This photo may have been moved or deleted from the device.',
-                  actionLabel: 'Check gallery',
-                  onAction: () {
-                    ref.read(libraryProvider.notifier).refresh();
-                    context.go('/gallery');
-                  },
-                )
-              : ListView(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 36),
+  void _showInfo(AssetEntity asset) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (BuildContext sheetContext) {
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.72,
+          minChildSize: 0.4,
+          maxChildSize: 0.95,
+          builder: (BuildContext context, ScrollController controller) {
+            return Consumer(
+              builder: (BuildContext context, WidgetRef ref, Widget? _) {
+                final PhotoRecord? record =
+                    ref.watch(libraryProvider).recordFor(widget.assetId);
+                return ListView(
+                  controller: controller,
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
                   children: <Widget>[
-                    Hero(
-                      tag: 'photo-${widget.assetId}',
-                      child: AspectRatio(
-                        aspectRatio: 4 / 3,
-                        child: PhotoThumbnail(
-                          asset: _asset!,
-                          size: 1600,
-                          borderRadius: BorderRadius.circular(22),
-                        ),
-                      ),
+                    Text(
+                      'Photo info',
+                      style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const SizedBox(height: 16),
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: _ActionButton(
-                            icon: favorite
-                                ? Icons.favorite_rounded
-                                : Icons.favorite_border_rounded,
-                            label: favorite ? 'Favorited' : 'Favorite',
-                            color: AppColors.danger,
-                            onTap: _toggleFavorite,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: _ActionButton(
-                            icon: Icons.auto_awesome_rounded,
-                            label: _analyzing ? 'Analyzing…' : 'Identify',
-                            color: AppColors.primary,
-                            onTap: _analyzing
-                                ? null
-                                : () => _analyze(_asset!),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: _ActionButton(
-                            icon: Icons.delete_outline_rounded,
-                            label: 'Delete',
-                            color: AppColors.danger,
-                            onTap: () => _delete(_asset!),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
                     _AiSection(
                       record: record,
                       analyzing: _analyzing,
-                      onAnalyze: () => _analyze(_asset!),
+                      onAnalyze: () {
+                        Navigator.of(sheetContext).pop();
+                        _analyze(asset);
+                      },
                     ),
                     const SizedBox(height: 18),
-                    _InfoCard(
-                      title: 'Details',
-                      rows: _detailRows(record),
-                    ),
+                    _InfoCard(title: 'Details', rows: _detailRows(record)),
                     const SizedBox(height: 18),
                     FutureBuilder<PhotoMetadata>(
                       future: _metadataFuture,
@@ -255,59 +215,80 @@ class _PhotoDetailsScreenState extends ConsumerState<PhotoDetailsScreen> {
                         BuildContext context,
                         AsyncSnapshot<PhotoMetadata> snapshot,
                       ) {
-                        final PhotoMetadata? metadata = snapshot.data;
-                        final Map<String, dynamic> exif =
-                            metadata?.exif ?? const <String, dynamic>{};
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
                           return const _LoadingCard();
                         }
-                        return _InfoCard(
-                          title: 'Camera & EXIF',
-                          rows: <_InfoRow>[
-                            _InfoRow(
-                              'Camera',
-                              metadata?.cameraLabel ??
-                                  record?.cameraModel ??
-                                  'Not available',
+                        final PhotoMetadata? metadata = snapshot.data;
+                        final Map<String, dynamic> exif =
+                            metadata?.exif ?? const <String, dynamic>{};
+                        final double? lat = metadata?.latitude ??
+                            record?.latitude ??
+                            asset.latitude;
+                        final double? lng = metadata?.longitude ??
+                            record?.longitude ??
+                            asset.longitude;
+                        final bool hasLocation = lat != null &&
+                            lng != null &&
+                            !(lat == 0 && lng == 0);
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: <Widget>[
+                            _InfoCard(
+                              title: 'Camera used',
+                              rows: <_InfoRow>[
+                                _InfoRow(
+                                  'Camera',
+                                  metadata?.cameraLabel ??
+                                      record?.cameraModel ??
+                                      'Not available',
+                                ),
+                                if (exif['lensModel'] != null)
+                                  _InfoRow('Lens', exif['lensModel'].toString()),
+                                if (exif['exposureTime'] != null)
+                                  _InfoRow(
+                                    'Exposure',
+                                    exif['exposureTime'].toString(),
+                                  ),
+                                if (exif['fNumber'] != null)
+                                  _InfoRow(
+                                    'Aperture',
+                                    exif['fNumber'].toString(),
+                                  ),
+                                if (exif['iso'] != null)
+                                  _InfoRow('ISO', exif['iso'].toString()),
+                                if (exif['focalLength'] != null)
+                                  _InfoRow(
+                                    'Focal length',
+                                    exif['focalLength'].toString(),
+                                  ),
+                              ],
                             ),
-                            if (exif['lensModel'] != null)
-                              _InfoRow(
-                                'Lens',
-                                exif['lensModel'].toString(),
+                            const SizedBox(height: 18),
+                            _InfoCard(
+                              title: 'Location',
+                              rows: <_InfoRow>[
+                                _InfoRow(
+                                  'Coordinates',
+                                  hasLocation
+                                      ? formatCoordinates(lat, lng)
+                                      : 'No location saved in this photo',
+                                ),
+                              ],
+                            ),
+                            if (hasLocation) ...<Widget>[
+                              const SizedBox(height: 10),
+                              OutlinedButton.icon(
+                                onPressed: () => _openMaps(lat, lng),
+                                icon: const Icon(Icons.map_outlined, size: 20),
+                                label: const Text('Open in Maps'),
                               ),
-                            if (exif['exposureTime'] != null)
-                              _InfoRow(
-                                'Exposure',
-                                exif['exposureTime'].toString(),
-                              ),
-                            if (exif['fNumber'] != null)
-                              _InfoRow('Aperture', exif['fNumber'].toString()),
-                            if (exif['iso'] != null)
-                              _InfoRow('ISO', exif['iso'].toString()),
-                            if (exif['focalLength'] != null)
-                              _InfoRow(
-                                'Focal length',
-                                exif['focalLength'].toString(),
-                              ),
+                            ],
                           ],
                         );
                       },
                     ),
-                    const SizedBox(height: 18),
-                    _InfoCard(
-                      title: 'Location',
-                      rows: <_InfoRow>[
-                        _InfoRow(
-                          'Coordinates',
-                          formatCoordinates(
-                            record?.latitude ?? _asset!.latitude,
-                            record?.longitude ?? _asset!.longitude,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
                     Row(
                       children: <Widget>[
                         const Icon(
@@ -325,7 +306,249 @@ class _PhotoDetailsScreenState extends ConsumerState<PhotoDetailsScreen> {
                       ],
                     ),
                   ],
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _pill({
+    required IconData icon,
+    required String label,
+    required VoidCallback? onTap,
+    Color? color,
+  }) {
+    return Expanded(
+      child: Material(
+        color: Colors.white.withValues(alpha: 0.16),
+        borderRadius: BorderRadius.circular(18),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(18),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Icon(icon, size: 22, color: color ?? Colors.white),
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white,
+                  ),
                 ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final LibraryState library = ref.watch(libraryProvider);
+    final bool favorite = library.favoriteIds.contains(widget.assetId);
+
+    if (_loading) {
+      return const Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(child: CircularProgressIndicator(color: Colors.white)),
+      );
+    }
+    if (_asset == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Photo details')),
+        body: EmptyState(
+          icon: Icons.broken_image_outlined,
+          title: 'Photo unavailable',
+          message: 'This photo may have been moved or deleted from the device.',
+          actionLabel: 'Check gallery',
+          onAction: () {
+            ref.read(libraryProvider.notifier).refresh();
+            context.go('/gallery');
+          },
+        ),
+      );
+    }
+    final AssetEntity asset = _asset!;
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: <Widget>[
+          Positioned.fill(
+            child: InteractiveViewer(
+              minScale: 1,
+              maxScale: 5,
+              child: Center(
+                child: Hero(
+                  tag: 'photo-${widget.assetId}',
+                  child: PhotoThumbnail(
+                    asset: asset,
+                    size: 2000,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: <Color>[
+                    Colors.black.withValues(alpha: 0.6),
+                    Colors.transparent,
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(4, 4, 4, 16),
+                  child: Row(
+                    children: <Widget>[
+                      IconButton(
+                        onPressed: () => context.pop(),
+                        icon: const Icon(
+                          Icons.arrow_back_rounded,
+                          color: Colors.white,
+                        ),
+                        tooltip: 'Back',
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        onPressed: _toggleFavorite,
+                        icon: Icon(
+                          favorite
+                              ? Icons.favorite_rounded
+                              : Icons.favorite_border_rounded,
+                          color: favorite ? AppColors.danger : Colors.white,
+                        ),
+                        tooltip: favorite
+                            ? 'Remove from favorites'
+                            : 'Add to favorites',
+                      ),
+                      PopupMenuButton<String>(
+                        icon: const Icon(
+                          Icons.more_vert_rounded,
+                          color: Colors.white,
+                        ),
+                        tooltip: 'More',
+                        color: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        onSelected: (String value) {
+                          switch (value) {
+                            case 'info':
+                              _showInfo(asset);
+                            case 'identify':
+                              _analyze(asset);
+                            case 'delete':
+                              _delete(asset);
+                          }
+                        },
+                        itemBuilder: (BuildContext context) =>
+                            const <PopupMenuEntry<String>>[
+                          PopupMenuItem<String>(
+                            value: 'info',
+                            child: ListTile(
+                              dense: true,
+                              contentPadding: EdgeInsets.zero,
+                              leading: Icon(Icons.info_outline_rounded),
+                              title: Text('Photo info'),
+                            ),
+                          ),
+                          PopupMenuItem<String>(
+                            value: 'identify',
+                            child: ListTile(
+                              dense: true,
+                              contentPadding: EdgeInsets.zero,
+                              leading: Icon(Icons.auto_awesome_rounded),
+                              title: Text('Identify with AI'),
+                            ),
+                          ),
+                          PopupMenuItem<String>(
+                            value: 'delete',
+                            child: ListTile(
+                              dense: true,
+                              contentPadding: EdgeInsets.zero,
+                              leading: Icon(
+                                Icons.delete_outline_rounded,
+                                color: AppColors.danger,
+                              ),
+                              title: Text('Delete'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: <Color>[
+                    Colors.transparent,
+                    Colors.black.withValues(alpha: 0.7),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+              child: SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 28, 16, 14),
+                  child: Row(
+                    children: <Widget>[
+                      _pill(
+                        icon: Icons.info_outline_rounded,
+                        label: 'Info',
+                        onTap: () => _showInfo(asset),
+                      ),
+                      const SizedBox(width: 10),
+                      _pill(
+                        icon: Icons.auto_awesome_rounded,
+                        label: _analyzing ? 'Analyzing…' : 'Identify',
+                        onTap: _analyzing ? null : () => _analyze(asset),
+                      ),
+                      const SizedBox(width: 10),
+                      _pill(
+                        icon: Icons.delete_outline_rounded,
+                        label: 'Delete',
+                        color: const Color(0xFFFF8A8A),
+                        onTap: () => _delete(asset),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

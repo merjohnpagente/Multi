@@ -50,8 +50,18 @@ class MetadataService {
         'lensModel': tags['EXIF LensModel']!.printable,
     };
 
-    final double? latitude = asset.latitude;
-    final double? longitude = asset.longitude;
+    double? latitude = asset.latitude;
+    double? longitude = asset.longitude;
+    if (latitude == null ||
+        longitude == null ||
+        (latitude == 0 && longitude == 0)) {
+      latitude = _gps(tags['GPS GPSLatitude'], tags['GPS GPSLatitudeRef']);
+      longitude = _gps(tags['GPS GPSLongitude'], tags['GPS GPSLongitudeRef']);
+      if (latitude == null || longitude == null) {
+        latitude = null;
+        longitude = null;
+      }
+    }
 
     return PhotoMetadata(
       title: title,
@@ -96,6 +106,51 @@ class MetadataService {
       // Fall back to the synchronous title.
     }
     return asset.title ?? 'Untitled';
+  }
+
+  double? _gps(IfdTag? value, IfdTag? ref) {
+    if (value == null) {
+      return null;
+    }
+    final String text =
+        value.printable.replaceAll('[', '').replaceAll(']', '');
+    final List<double> parts = <double>[];
+    for (final String raw in text.split(',')) {
+      final String item = raw.trim();
+      if (item.isEmpty) {
+        continue;
+      }
+      if (item.contains('/')) {
+        final List<String> frac = item.split('/');
+        final double? n = double.tryParse(frac[0]);
+        final double? d = double.tryParse(frac[1]);
+        if (n == null || d == null || d == 0) {
+          return null;
+        }
+        parts.add(n / d);
+      } else {
+        final double? n = double.tryParse(item);
+        if (n == null) {
+          return null;
+        }
+        parts.add(n);
+      }
+    }
+    if (parts.isEmpty) {
+      return null;
+    }
+    double result = parts[0];
+    if (parts.length > 1) {
+      result += parts[1] / 60;
+    }
+    if (parts.length > 2) {
+      result += parts[2] / 3600;
+    }
+    final String direction = ref?.printable.trim().toUpperCase() ?? '';
+    if (direction.startsWith('S') || direction.startsWith('W')) {
+      result = -result;
+    }
+    return result;
   }
 
   String? _tagValue(IfdTag? tag) {
