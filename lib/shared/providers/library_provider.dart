@@ -897,6 +897,31 @@ class LibraryController extends Notifier<LibraryState> {
     return before.difference(after).length;
   }
 
+  /// Saves picked images into the device gallery (Pictures/J-Pix), then
+  /// refreshes the library and organizes them automatically.
+  Future<int> importPhotos(List<MapEntry<String, Uint8List>> items) async {
+    int saved = 0;
+    for (final MapEntry<String, Uint8List> item in items) {
+      String name = item.key.trim().isEmpty ? 'photo' : item.key.trim();
+      if (!RegExp(r'\.(jpe?g|png|webp|heic|heif|gif|bmp)$',
+              caseSensitive: false)
+          .hasMatch(name)) {
+        name = '$name.jpg';
+      }
+      name = '${DateTime.now().millisecondsSinceEpoch}_$name';
+      final AssetEntity? entity = await _photo.saveImageBytes(item.value, name);
+      if (entity != null) {
+        saved++;
+      }
+    }
+    if (saved > 0) {
+      _photo.clearThumbnailCache();
+      await refresh();
+      unawaited(analyzePending(force: true));
+    }
+    return saved;
+  }
+
   Future<AiIdentification?> analyzeAsset(AssetEntity asset) async {
     final Uint8List? bytes = await _photo.thumbnail(
       asset,

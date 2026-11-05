@@ -1,6 +1,10 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 import '../../core/theme/app_colors.dart';
@@ -175,6 +179,86 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen> {
     );
   }
 
+  Future<void> _addPhotos() async {
+    final ImageSource? source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (BuildContext sheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.photo_library_outlined),
+                title: const Text('Choose photos'),
+                subtitle: const Text('Pick one or more from your phone'),
+                onTap: () =>
+                    Navigator.of(sheetContext).pop(ImageSource.gallery),
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt_outlined),
+                title: const Text('Take a photo'),
+                onTap: () =>
+                    Navigator.of(sheetContext).pop(ImageSource.camera),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+    if (source == null || !mounted) {
+      return;
+    }
+    final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+    try {
+      final ImagePicker picker = ImagePicker();
+      final List<XFile> files = <XFile>[];
+      if (source == ImageSource.camera) {
+        final PermissionStatus status = await Permission.camera.request();
+        if (!status.isGranted) {
+          messenger.showSnackBar(
+            const SnackBar(content: Text('Camera access is needed.')),
+          );
+          return;
+        }
+        final XFile? shot = await picker.pickImage(source: source);
+        if (shot != null) {
+          files.add(shot);
+        }
+      } else {
+        files.addAll(await picker.pickMultiImage());
+      }
+      if (files.isEmpty) {
+        return;
+      }
+      final List<MapEntry<String, Uint8List>> items =
+          <MapEntry<String, Uint8List>>[];
+      for (final XFile file in files) {
+        items.add(MapEntry<String, Uint8List>(
+          file.name,
+          await file.readAsBytes(),
+        ));
+      }
+      final int saved =
+          await ref.read(libraryProvider.notifier).importPhotos(items);
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            saved == 0
+                ? 'Could not add the photos.'
+                : saved == 1
+                    ? '1 photo added. Organizing it now…'
+                    : '$saved photos added. Organizing them now…',
+          ),
+        ),
+      );
+    } catch (_) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Could not add the photos.')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final LibraryState library = ref.watch(libraryProvider);
@@ -224,6 +308,11 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen> {
           : AppBar(
               title: const Text('Gallery'),
               actions: <Widget>[
+                IconButton(
+                  onPressed: _addPhotos,
+                  icon: const Icon(Icons.add_photo_alternate_outlined),
+                  tooltip: 'Add photos',
+                ),
                 IconButton(
                   onPressed: () => context.push('/search'),
                   icon: const Icon(Icons.search_rounded),

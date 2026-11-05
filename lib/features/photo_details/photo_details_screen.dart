@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -152,6 +155,65 @@ class _PhotoDetailsScreenState extends ConsumerState<PhotoDetailsScreen> {
     }
   }
 
+  final Map<String, Future<String?>> _places = <String, Future<String?>>{};
+
+  Future<String?> _placeName(double lat, double lng) {
+    final String key = '$lat,$lng';
+    return _places.putIfAbsent(key, () async {
+      final HttpClient client = HttpClient()
+        ..connectionTimeout = const Duration(seconds: 8)
+        ..userAgent = 'J-Pix/1.2 (photo organizer)';
+      try {
+        final HttpClientRequest request = await client.getUrl(
+          Uri.parse(
+            'https://nominatim.openstreetmap.org/reverse'
+            '?format=jsonv2&zoom=14&addressdetails=1&lat=$lat&lon=$lng',
+          ),
+        );
+        request.headers.set('Accept-Language', 'en');
+        final HttpClientResponse response =
+            await request.close().timeout(const Duration(seconds: 10));
+        if (response.statusCode != 200) {
+          return null;
+        }
+        final String body = await response.transform(utf8.decoder).join();
+        final Object? json = jsonDecode(body);
+        if (json is! Map<String, dynamic>) {
+          return null;
+        }
+        final Object? addr = json['address'];
+        if (addr is Map<String, dynamic>) {
+          final List<String> parts = <String>[];
+          for (final String k in <String>[
+            'suburb',
+            'village',
+            'city',
+            'town',
+            'municipality',
+            'county',
+            'state',
+            'province',
+            'country',
+          ]) {
+            final Object? v = addr[k];
+            if (v is String && v.isNotEmpty && !parts.contains(v)) {
+              parts.add(v);
+            }
+          }
+          if (parts.isNotEmpty) {
+            return parts.take(4).join(', ');
+          }
+        }
+        final Object? name = json['display_name'];
+        return name is String ? name : null;
+      } catch (_) {
+        return null;
+      } finally {
+        client.close(force: true);
+      }
+    });
+  }
+
   Future<void> _openMaps(double lat, double lng) async {
     final Uri uri = Uri.parse(
       'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
@@ -265,6 +327,32 @@ class _PhotoDetailsScreenState extends ConsumerState<PhotoDetailsScreen> {
                               ],
                             ),
                             const SizedBox(height: 18),
+                            if (hasLocation)
+                              FutureBuilder<String?>(
+                                future: _placeName(lat, lng),
+                                builder: (
+                                  BuildContext context,
+                                  AsyncSnapshot<String?> place,
+                                ) {
+                                  final bool waiting = place.connectionState !=
+                                      ConnectionState.done;
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 10),
+                                    child: _InfoCard(
+                                      title: 'Place',
+                                      rows: <_InfoRow>[
+                                        _InfoRow(
+                                          'Location',
+                                          waiting
+                                              ? 'Finding place…'
+                                              : (place.data ??
+                                                  'Needs internet to show the place name'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
                             _InfoCard(
                               title: 'Location',
                               rows: <_InfoRow>[

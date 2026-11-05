@@ -221,6 +221,19 @@ class PhotoService {
     }
   }
 
+  Future<AssetEntity?> saveImageBytes(Uint8List bytes, String filename) async {
+    try {
+      return await PhotoManager.editor.saveImage(
+        bytes,
+        filename: filename,
+        title: filename,
+        relativePath: 'Pictures/J-Pix',
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
   void clearThumbnailCache() {
     _thumbnailCache.clear();
     _thumbnailRequests.clear();
