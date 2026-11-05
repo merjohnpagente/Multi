@@ -4,11 +4,74 @@ import 'package:go_router/go_router.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../shared/providers/service_providers.dart';
 import '../../core/utilities/formatters.dart';
 import '../../shared/models/app_category.dart';
 import '../../shared/providers/library_provider.dart';
 import '../../shared/widgets/permission_gate.dart';
 import '../../shared/widgets/photo_thumbnail.dart';
+
+Future<void> _saveAllAsAlbums(BuildContext context, WidgetRef ref) async {
+  final LibraryState library = ref.read(libraryProvider);
+  final ScaffoldMessengerState messenger = ScaffoldMessenger.of(context);
+  final Map<AppCategory, List<AssetEntity>> groups =
+      <AppCategory, List<AssetEntity>>{};
+  for (final AppCategory c in AppCategory.values) {
+    final List<AssetEntity> photos = library.photosForCategory(c);
+    if (photos.isNotEmpty) {
+      groups[c] = photos;
+    }
+  }
+  final int total =
+      groups.values.fold<int>(0, (int a, List<AssetEntity> b) => a + b.length);
+  if (total == 0) {
+    messenger.showSnackBar(
+      const SnackBar(content: Text('No organized photos to save yet.')),
+    );
+    return;
+  }
+  final bool? ok = await showDialog<bool>(
+    context: context,
+    builder: (BuildContext context) => AlertDialog(
+      title: const Text('Save all as folders?'),
+      content: Text(
+        '$total photos will be copied into ${groups.length} folders '
+        '(${groups.keys.map((AppCategory c) => c.label).join(', ')}) '
+        'inside Pictures/J-Pix Export on your phone.',
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          child: const Text('Save'),
+        ),
+      ],
+    ),
+  );
+  if (ok != true) {
+    return;
+  }
+  messenger.showSnackBar(SnackBar(content: Text('Saving $total photos…')));
+  int saved = 0;
+  for (final MapEntry<AppCategory, List<AssetEntity>> e in groups.entries) {
+    saved += await ref
+        .read(photoServiceProvider)
+        .exportToFolder(e.value, e.key.label);
+  }
+  messenger.hideCurrentSnackBar();
+  messenger.showSnackBar(
+    SnackBar(
+      content: Text(
+        saved == 0
+            ? 'Could not save the photos.'
+            : 'Saved $saved photos into folders in Pictures/J-Pix Export',
+      ),
+    ),
+  );
+}
 
 class CategoriesScreen extends ConsumerWidget {
   const CategoriesScreen({super.key});
@@ -28,6 +91,11 @@ class CategoriesScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Categories'),
         actions: <Widget>[
+          IconButton(
+            onPressed: () => _saveAllAsAlbums(context, ref),
+            icon: const Icon(Icons.create_new_folder_outlined),
+            tooltip: 'Save all as folders',
+          ),
           IconButton(
             onPressed: () => context.push('/search'),
             icon: const Icon(Icons.search_rounded),
