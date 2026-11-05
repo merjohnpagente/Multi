@@ -338,7 +338,7 @@ class _PhotoDetailsScreenState extends ConsumerState<PhotoDetailsScreen> {
                 Text(
                   label,
                   style: const TextStyle(
-                    fontFamily: 'Inter',
+                    fontFamily: 'Jakarta',
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
                     color: Colors.white,

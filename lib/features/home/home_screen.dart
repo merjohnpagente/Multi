@@ -220,76 +220,32 @@ class _HomeHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final LibraryState? lib = library;
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-      padding: const EdgeInsets.fromLTRB(20, 18, 14, 18),
-      decoration: BoxDecoration(
-        gradient: AppColors.hero,
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.28),
-            blurRadius: 28,
-            offset: const Offset(0, 12),
-          ),
-        ],
-      ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 12, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Row(
             children: <Widget>[
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Image.asset(
-                  'assets/images/app_logo.png',
-                  width: 32,
-                  height: 32,
-                ),
-              ),
-              const SizedBox(width: 12),
+              Image.asset('assets/images/app_logo.png', width: 36, height: 36),
+              const SizedBox(width: 10),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      'J-Pix',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            color: Colors.white,
-                          ),
-                    ),
-                    Text(
-                      'Your library, privately organized.',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.white.withValues(alpha: 0.78),
-                          ),
-                    ),
-                  ],
+                child: Text(
+                  'J-Pix',
+                  style: Theme.of(context).textTheme.headlineSmall,
                 ),
               ),
               IconButton(
                 onPressed: onSettings,
                 tooltip: 'Settings',
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.white.withValues(alpha: 0.16),
-                  minimumSize: const Size(44, 44),
-                ),
-                icon: const Icon(
-                  Icons.settings_outlined,
-                  size: 21,
-                  color: Colors.white,
-                ),
+                icon: const Icon(Icons.settings_outlined, size: 22),
               ),
             ],
           ),
           if (lib != null) ...<Widget>[
-            const SizedBox(height: 20),
+            const SizedBox(height: 18),
             Padding(
-              padding: const EdgeInsets.only(right: 6),
+              padding: const EdgeInsets.only(right: 8),
               child: Row(
                 children: <Widget>[
                   _Stat(value: formatCount(lib.totalPhotos), label: 'Photos'),
@@ -416,28 +372,19 @@ class _Stat extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.14),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
           children: <Widget>[
             Text(
               value,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontSize: 21,
-                    color: Colors.white,
-                  ),
+              style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 2),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.78),
-                  ),
-            ),
+            Text(label, style: Theme.of(context).textTheme.bodySmall),
           ],
         ),
       ),
@@ -595,21 +542,10 @@ class _QuickAction extends StatelessWidget {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: <Color>[color.withValues(alpha: 0.9), color],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(15),
-                    boxShadow: <BoxShadow>[
-                      BoxShadow(
-                        color: color.withValues(alpha: 0.35),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
+                    color: color.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(14),
                   ),
-                  child: Icon(icon, size: 21, color: Colors.white),
+                  child: Icon(icon, size: 21, color: color),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -647,7 +583,7 @@ class _RecentThumb extends StatelessWidget {
           asset: asset,
           size: 500,
           fit: BoxFit.cover,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(14),
         ),
       ),
     );
@@ -682,7 +618,7 @@ class _OrganizedThumb extends StatelessWidget {
                     child: PhotoThumbnail(
                       asset: asset,
                       size: 500,
-                      borderRadius: BorderRadius.circular(18),
+                      borderRadius: BorderRadius.circular(14),
                     ),
                   ),
                   if (category != null)
@@ -709,7 +645,7 @@ class _OrganizedThumb extends StatelessWidget {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
-                                  fontFamily: 'Inter',
+                                  fontFamily: 'Jakarta',
                                   fontSize: 9.5,
                                   fontWeight: FontWeight.w500,
                                   color: Colors.white,

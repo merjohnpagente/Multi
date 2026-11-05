@@ -78,14 +78,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.ink,
+      backgroundColor: AppColors.white,
       body: Container(
-        decoration: const BoxDecoration(gradient: AppColors.hero),
         child: Stack(
           children: <Widget>[
-            Positioned(top: -70, right: -60, child: _blob(240, 0.07)),
-            Positioned(top: 140, left: -80, child: _blob(180, 0.05)),
-            Positioned(bottom: -90, left: -40, child: _blob(260, 0.06)),
             SafeArea(
               child: Padding(
                 padding: const EdgeInsets.all(28),
@@ -100,29 +96,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                           (BuildContext context, double value, Widget? child) {
                         return Transform.scale(scale: value, child: child);
                       },
-                      child: Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(36),
-                          boxShadow: <BoxShadow>[
-                            BoxShadow(
-                              color: Colors.white.withValues(alpha: 0.28),
-                              blurRadius: 50,
-                              spreadRadius: 4,
-                            ),
-                            const BoxShadow(
-                              color: Color(0x40000000),
-                              blurRadius: 30,
-                              offset: Offset(0, 16),
-                            ),
-                          ],
-                        ),
-                        child: Image.asset(
-                          'assets/images/app_logo.png',
-                          width: 92,
-                          height: 92,
-                        ),
+                      child: Image.asset(
+                        'assets/images/app_logo.png',
+                        width: 96,
+                        height: 96,
                       ),
                     ),
                     const SizedBox(height: 32),
@@ -133,8 +110,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                         textAlign: TextAlign.center,
                         style:
                             Theme.of(context).textTheme.displaySmall?.copyWith(
-                                  color: Colors.white,
-                                  fontSize: 42,
+                                  color: AppColors.textPrimary,
+                                  fontSize: 38,
                                   letterSpacing: -1.2,
                                 ),
                       ),
@@ -145,8 +122,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                       child: Text(
                         'Organize. Find. Discover.',
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: Colors.white.withValues(alpha: 0.82),
-                              letterSpacing: 0.4,
+                              color: AppColors.textSecondary,
+                              letterSpacing: 0.3,
                             ),
                       ),
                     ),
@@ -159,9 +136,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                           borderRadius: BorderRadius.circular(4),
                           child: LinearProgressIndicator(
                             minHeight: 4,
-                            color: Colors.white,
-                            backgroundColor:
-                                Colors.white.withValues(alpha: 0.22),
+                            color: AppColors.primary,
+                            backgroundColor: AppColors.border,
                           ),
                         ),
                       ),
@@ -170,29 +146,20 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                     _fadeSlide(
                       delayMs: 750,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[
                             Icon(
                               Icons.shield_outlined,
                               size: 15,
-                              color: Colors.white.withValues(alpha: 0.85),
+                              color: AppColors.textTertiary,
                             ),
                             const SizedBox(width: 6),
                             Text(
                               'On-device AI · Your photos stay private',
                               style:
                                   Theme.of(context).textTheme.bodySmall?.copyWith(
-                                        color:
-                                            Colors.white.withValues(alpha: 0.85),
+                                        color: AppColors.textTertiary,
                                       ),
                             ),
                           ],

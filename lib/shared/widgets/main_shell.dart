@@ -40,18 +40,10 @@ class MainShell extends StatelessWidget {
       bottomNavigationBar: SafeArea(
         top: false,
         child: Container(
-          height: 70,
-          margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-          decoration: BoxDecoration(
-            color: AppColors.ink,
-            borderRadius: BorderRadius.circular(28),
-            boxShadow: const <BoxShadow>[
-              BoxShadow(
-                color: Color(0x330C241C),
-                blurRadius: 24,
-                offset: Offset(0, 10),
-              ),
-            ],
+          height: 64,
+          decoration: const BoxDecoration(
+            color: AppColors.white,
+            border: Border(top: BorderSide(color: AppColors.border)),
           ),
           child: Row(
             children: <Widget>[
@@ -109,7 +101,7 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color color = selected ? AppColors.white : const Color(0xFF8FB0A4);
+    final Color color = selected ? AppColors.primary : AppColors.textTertiary;
     return Expanded(
       child: Semantics(
         selected: selected,
@@ -128,7 +120,7 @@ class _NavItem extends StatelessWidget {
                 height: 28,
                 decoration: BoxDecoration(
                   color: selected
-                      ? AppColors.primary.withValues(alpha: 0.85)
+                      ? AppColors.primarySoft.withValues(alpha: 0.7)
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(14),
                 ),
@@ -166,27 +158,15 @@ class _ScanItem extends StatelessWidget {
         child: GestureDetector(
           onTap: onTap,
           child: Container(
-            width: 54,
-            height: 54,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: <Color>[Color(0xFF1DB98A), Color(0xFF0F9D75)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+            width: 46,
+            height: 46,
+            decoration: const BoxDecoration(
+              color: AppColors.primary,
               shape: BoxShape.circle,
-              border: Border.all(color: AppColors.ink, width: 3),
-              boxShadow: <BoxShadow>[
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.45),
-                  blurRadius: 16,
-                  offset: const Offset(0, 5),
-                ),
-              ],
             ),
             child: const Icon(
               Icons.auto_awesome_rounded,
-              size: 24,
+              size: 22,
               color: AppColors.white,
             ),
           ),

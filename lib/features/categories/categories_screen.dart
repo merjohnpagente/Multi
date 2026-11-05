@@ -98,72 +98,46 @@ class _OrganizerHeader extends StatelessWidget {
     final double progress =
         total == 0 ? 0 : (organized / total).clamp(0, 1).toDouble();
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        gradient: AppColors.hero,
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.26),
-            blurRadius: 26,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Row(
             children: <Widget>[
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.18),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.auto_awesome_rounded,
-                  size: 19,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   'Sorted on your device',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: Colors.white,
-                      ),
+                  style: Theme.of(context).textTheme.titleSmall,
                 ),
               ),
               Text(
                 '${formatCount(organized)}/${formatCount(total)}',
                 style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600,
                     ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           ClipRRect(
             borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
               value: progress,
-              minHeight: 8,
-              color: Colors.white,
-              backgroundColor: Colors.white.withValues(alpha: 0.22),
+              minHeight: 6,
+              backgroundColor: AppColors.border,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Text(
             library.pendingCount > 0
-                ? '${formatCount(library.pendingCount)} photos are waiting to be organized. This happens privately in the background.'
-                : 'Every photo has a category. Tap one to explore.',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.82),
-                ),
+                ? '${formatCount(library.pendingCount)} photos are waiting to be organized.'
+                : 'Every photo has a category.',
+            style: Theme.of(context).textTheme.bodySmall,
           ),
         ],
       ),
@@ -187,12 +161,8 @@ class _CategoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color tint = category.tint;
-    final BorderRadius radius = BorderRadius.circular(26);
+    final BorderRadius radius = BorderRadius.circular(20);
     return Container(
-      decoration: BoxDecoration(
-        borderRadius: radius,
-        boxShadow: AppColors.softShadow,
-      ),
       child: ClipRRect(
         borderRadius: radius,
         child: Stack(
@@ -254,7 +224,7 @@ class _CategoryCard extends StatelessWidget {
                 child: Text(
                   formatCount(count),
                   style: const TextStyle(
-                    fontFamily: 'Inter',
+                    fontFamily: 'Jakarta',
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,

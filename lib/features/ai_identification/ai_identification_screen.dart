@@ -485,7 +485,7 @@ class _SelectedImage extends StatelessWidget {
                     Text(
                       'On-device',
                       style: TextStyle(
-                        fontFamily: 'Inter',
+                        fontFamily: 'Jakarta',
                         fontSize: 10,
                         fontWeight: FontWeight.w500,
                         color: Colors.white,
@@ -545,7 +545,7 @@ class _SelectedImage extends StatelessWidget {
                           Text(
                             'Change',
                             style: TextStyle(
-                              fontFamily: 'Inter',
+                              fontFamily: 'Jakarta',
                               fontSize: 10,
                               color: Colors.white,
                             ),
@@ -630,7 +630,7 @@ class _ScanningOverlayState extends State<_ScanningOverlay>
                       Text(
                         'Analyzing on device…',
                         style: TextStyle(
-                          fontFamily: 'Inter',
+                          fontFamily: 'Jakarta',
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                           color: Colors.white,

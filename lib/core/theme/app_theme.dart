@@ -93,10 +93,10 @@ class AppTheme {
 
     return ThemeData(
       useMaterial3: true,
-      fontFamily: 'Inter',
+      fontFamily: 'Jakarta',
       colorScheme: scheme,
       scaffoldBackgroundColor: AppColors.background,
-      textTheme: textTheme.apply(fontFamily: 'Inter'),
+      textTheme: textTheme.apply(fontFamily: 'Jakarta'),
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.background,
         foregroundColor: AppColors.textPrimary,
@@ -110,7 +110,7 @@ class AppTheme {
           statusBarBrightness: Brightness.light,
         ),
         titleTextStyle: TextStyle(
-          fontFamily: 'Inter',
+          fontFamily: 'Jakarta',
           fontSize: 20,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
@@ -128,7 +128,7 @@ class AppTheme {
         fillColor: AppColors.card,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
         hintStyle: const TextStyle(
-          fontFamily: 'Inter',
+          fontFamily: 'Jakarta',
           color: AppColors.textTertiary,
           fontSize: 14,
         ),
@@ -164,7 +164,7 @@ class AppTheme {
             borderRadius: BorderRadius.circular(18),
           ),
           textStyle: const TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: 'Jakarta',
             fontSize: 15,
             fontWeight: FontWeight.w600,
           ),
@@ -179,7 +179,7 @@ class AppTheme {
             borderRadius: BorderRadius.circular(16),
           ),
           textStyle: const TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: 'Jakarta',
             fontSize: 15,
             fontWeight: FontWeight.w500,
           ),
@@ -189,7 +189,7 @@ class AppTheme {
         style: TextButton.styleFrom(
           foregroundColor: AppColors.primary,
           textStyle: const TextStyle(
-            fontFamily: 'Inter',
+            fontFamily: 'Jakarta',
             fontSize: 14,
             fontWeight: FontWeight.w500,
           ),
@@ -200,13 +200,13 @@ class AppTheme {
         selectedColor: AppColors.ink,
         disabledColor: AppColors.card,
         labelStyle: const TextStyle(
-          fontFamily: 'Inter',
+          fontFamily: 'Jakarta',
           fontSize: 13,
           fontWeight: FontWeight.w500,
           color: AppColors.textPrimary,
         ),
         secondaryLabelStyle: const TextStyle(
-          fontFamily: 'Inter',
+          fontFamily: 'Jakarta',
           fontSize: 13,
           fontWeight: FontWeight.w500,
           color: AppColors.white,
@@ -232,13 +232,13 @@ class AppTheme {
           borderRadius: BorderRadius.circular(28),
         ),
         titleTextStyle: const TextStyle(
-          fontFamily: 'Inter',
+          fontFamily: 'Jakarta',
           fontSize: 18,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
         contentTextStyle: const TextStyle(
-          fontFamily: 'Inter',
+          fontFamily: 'Jakarta',
           fontSize: 14,
           height: 1.5,
           color: AppColors.textSecondary,
@@ -255,7 +255,7 @@ class AppTheme {
       snackBarTheme: SnackBarThemeData(
         backgroundColor: AppColors.textPrimary,
         contentTextStyle: const TextStyle(
-          fontFamily: 'Inter',
+          fontFamily: 'Jakarta',
           fontSize: 13,
           color: AppColors.white,
         ),
