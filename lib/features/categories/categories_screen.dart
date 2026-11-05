@@ -53,9 +53,9 @@ class CategoriesScreen extends ConsumerWidget {
                 itemCount: AppCategory.values.length,
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 0.98,
+                  crossAxisSpacing: 14,
+                  mainAxisSpacing: 14,
+                  childAspectRatio: 0.88,
                 ),
                 itemBuilder: (BuildContext context, int index) {
                   final AppCategory category = AppCategory.values[index];
@@ -98,57 +98,72 @@ class _OrganizerHeader extends StatelessWidget {
     final double progress =
         total == 0 ? 0 : (organized / total).clamp(0, 1).toDouble();
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: <Color>[AppColors.primaryFaint, AppColors.card],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.primarySoft),
+        gradient: AppColors.hero,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.26),
+            blurRadius: 26,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Row(
             children: <Widget>[
-              const Icon(
-                Icons.auto_awesome_rounded,
-                size: 19,
-                color: AppColors.primary,
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.auto_awesome_rounded,
+                  size: 19,
+                  color: Colors.white,
+                ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   'Sorted on your device',
-                  style: Theme.of(context).textTheme.titleSmall,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: Colors.white,
+                      ),
                 ),
               ),
               Text(
                 '${formatCount(organized)}/${formatCount(total)}',
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w600,
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
                     ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           ClipRRect(
-            borderRadius: BorderRadius.circular(5),
+            borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
               value: progress,
-              minHeight: 7,
-              backgroundColor: AppColors.white,
+              minHeight: 8,
+              color: Colors.white,
+              backgroundColor: Colors.white.withValues(alpha: 0.22),
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Text(
             library.pendingCount > 0
                 ? '${formatCount(library.pendingCount)} photos are waiting to be organized. This happens privately in the background.'
                 : 'Every photo has a category. Tap one to explore.',
-            style: Theme.of(context).textTheme.bodySmall,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Colors.white.withValues(alpha: 0.82),
+                ),
           ),
         ],
       ),
@@ -172,82 +187,115 @@ class _CategoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color tint = category.tint;
-    return Material(
-      color: tint.withValues(alpha: 0.07),
-      borderRadius: BorderRadius.circular(20),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Row(
-                children: <Widget>[
-                  Container(
-                    width: 42,
-                    height: 42,
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(13),
-                    ),
-                    alignment: Alignment.center,
-                    child: Icon(category.icon, color: tint, size: 21),
-                  ),
-                  const Spacer(),
-                  if (cover != null)
-                    SizedBox(
-                      width: 48,
-                      height: 48,
-                      child: PhotoThumbnail(
-                        asset: cover!,
-                        size: 320,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    )
-                  else
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 5,
-                      ),
+    final BorderRadius radius = BorderRadius.circular(26);
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: radius,
+        boxShadow: AppColors.softShadow,
+      ),
+      child: ClipRRect(
+        borderRadius: radius,
+        child: Stack(
+          children: <Widget>[
+            Positioned.fill(
+              child: cover != null
+                  ? PhotoThumbnail(asset: cover!, size: 500)
+                  : DecoratedBox(
                       decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        '0',
-                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                              color: tint,
-                              fontWeight: FontWeight.w600,
-                            ),
+                        gradient: LinearGradient(
+                          colors: <Color>[
+                            tint.withValues(alpha: 0.85),
+                            tint.withValues(alpha: 0.55),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
                       ),
                     ),
+            ),
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: <Color>[
+                      Colors.black.withValues(alpha: 0.05),
+                      Colors.black.withValues(alpha: 0.72),
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    stops: const <double>[0.35, 1],
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              left: 12,
+              top: 12,
+              child: Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.9),
+                  borderRadius: BorderRadius.circular(13),
+                ),
+                child: Icon(category.icon, color: tint, size: 20),
+              ),
+            ),
+            Positioned(
+              right: 12,
+              top: 12,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.38),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  formatCount(count),
+                  style: const TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              left: 14,
+              right: 14,
+              bottom: 14,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Text(
+                    category.label,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    category.description,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.white.withValues(alpha: 0.8),
+                        ),
+                  ),
                 ],
               ),
-              const Spacer(),
-              Text(
-                category.label,
-                style: Theme.of(context).textTheme.titleMedium,
+            ),
+            Positioned.fill(
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(onTap: onTap),
               ),
-              const SizedBox(height: 3),
-              Text(
-                category.description,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              const SizedBox(height: 6),
-              Text(
-                count == 1 ? '1 photo' : '${formatCount(count)} photos',
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: tint,
-                      fontWeight: FontWeight.w600,
-                    ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

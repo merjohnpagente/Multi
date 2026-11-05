@@ -135,12 +135,12 @@ class AppTheme {
         prefixIconColor: AppColors.textSecondary,
         suffixIconColor: AppColors.textSecondary,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(18),
+          borderSide: const BorderSide(color: AppColors.border),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(18),
+          borderSide: const BorderSide(color: AppColors.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -159,9 +159,9 @@ class AppTheme {
         style: FilledButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.white,
-          minimumSize: const Size.fromHeight(52),
+          minimumSize: const Size.fromHeight(54),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(18),
           ),
           textStyle: const TextStyle(
             fontFamily: 'Inter',
@@ -197,7 +197,7 @@ class AppTheme {
       ),
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.card,
-        selectedColor: AppColors.primary,
+        selectedColor: AppColors.ink,
         disabledColor: AppColors.card,
         labelStyle: const TextStyle(
           fontFamily: 'Inter',
@@ -211,7 +211,7 @@ class AppTheme {
           fontWeight: FontWeight.w500,
           color: AppColors.white,
         ),
-        side: BorderSide.none,
+        side: const BorderSide(color: AppColors.border),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24),
         ),
@@ -222,14 +222,14 @@ class AppTheme {
         elevation: 0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(24),
         ),
       ),
       dialogTheme: DialogThemeData(
-        backgroundColor: AppColors.background,
+        backgroundColor: AppColors.white,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(28),
         ),
         titleTextStyle: const TextStyle(
           fontFamily: 'Inter',
@@ -245,11 +245,11 @@ class AppTheme {
         ),
       ),
       bottomSheetTheme: const BottomSheetThemeData(
-        backgroundColor: AppColors.background,
+        backgroundColor: AppColors.white,
         surfaceTintColor: Colors.transparent,
         showDragHandle: true,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
         ),
       ),
       snackBarTheme: SnackBarThemeData(

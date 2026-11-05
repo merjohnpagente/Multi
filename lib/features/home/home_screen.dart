@@ -49,7 +49,10 @@ class HomeScreen extends ConsumerWidget {
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.only(bottom: 36),
             children: <Widget>[
-              _HomeHeader(onSettings: () => context.push('/settings')),
+              _HomeHeader(
+                onSettings: () => context.push('/settings'),
+                library: library,
+              ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
                 child: _SearchBar(onTap: () => context.push('/search')),
@@ -58,8 +61,6 @@ class HomeScreen extends ConsumerWidget {
                 _LimitedBanner(onManage: controller.manageLimitedAccess),
               const LibraryActivityCard(),
               const SizedBox(height: 8),
-              _SummaryCard(library: library),
-              const SizedBox(height: 12),
               _StorageCard(library: library),
               const SectionHeader(
                 title: 'Quick access',
@@ -211,51 +212,101 @@ class HomeScreen extends ConsumerWidget {
 }
 
 class _HomeHeader extends StatelessWidget {
-  const _HomeHeader({required this.onSettings});
+  const _HomeHeader({required this.onSettings, this.library});
 
   final VoidCallback onSettings;
+  final LibraryState? library;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 16, 14),
-      child: Row(
+    final LibraryState? lib = library;
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+      padding: const EdgeInsets.fromLTRB(20, 18, 14, 18),
+      decoration: BoxDecoration(
+        gradient: AppColors.hero,
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.28),
+            blurRadius: 28,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Image.asset(
-            'assets/images/app_logo.png',
-            width: 42,
-            height: 42,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  'J-Pix',
-                  style: Theme.of(context).textTheme.headlineMedium,
+          Row(
+            children: <Widget>[
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                const SizedBox(height: 3),
-                Text(
-                  'Your library, privately organized.',
-                  style: Theme.of(context).textTheme.bodyMedium,
+                child: Image.asset(
+                  'assets/images/app_logo.png',
+                  width: 32,
+                  height: 32,
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'J-Pix',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            color: Colors.white,
+                          ),
+                    ),
+                    Text(
+                      'Your library, privately organized.',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.white.withValues(alpha: 0.78),
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                onPressed: onSettings,
+                tooltip: 'Settings',
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.white.withValues(alpha: 0.16),
+                  minimumSize: const Size(44, 44),
+                ),
+                icon: const Icon(
+                  Icons.settings_outlined,
+                  size: 21,
+                  color: Colors.white,
+                ),
+              ),
+            ],
           ),
-          IconButton(
-            onPressed: onSettings,
-            tooltip: 'Settings',
-            style: IconButton.styleFrom(
-              backgroundColor: AppColors.card,
-              minimumSize: const Size(44, 44),
+          if (lib != null) ...<Widget>[
+            const SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.only(right: 6),
+              child: Row(
+                children: <Widget>[
+                  _Stat(value: formatCount(lib.totalPhotos), label: 'Photos'),
+                  const SizedBox(width: 10),
+                  _Stat(
+                    value: formatCount(lib.analyzedCount),
+                    label: 'Organized',
+                  ),
+                  const SizedBox(width: 10),
+                  _Stat(
+                    value: formatCount(lib.favoriteIds.length),
+                    label: 'Favorites',
+                  ),
+                ],
+              ),
             ),
-            icon: const Icon(
-              Icons.settings_outlined,
-              size: 21,
-              color: AppColors.textPrimary,
-            ),
-          ),
+          ],
         ],
       ),
     );
@@ -269,14 +320,19 @@ class _SearchBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: AppColors.softShadow,
+      ),
+      child: Material(
       color: AppColors.card,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(20),
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
           child: Row(
             children: <Widget>[
               const Icon(
@@ -302,7 +358,7 @@ class _SearchBar extends StatelessWidget {
           ),
         ),
       ),
-    );
+    ));
   }
 }
 
@@ -350,43 +406,6 @@ class _LimitedBanner extends StatelessWidget {
   }
 }
 
-class _SummaryCard extends StatelessWidget {
-  const _SummaryCard({required this.library});
-
-  final LibraryState library;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 8),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Row(
-        children: <Widget>[
-          _Stat(
-            value: formatCount(library.totalPhotos),
-            label: 'Photos',
-          ),
-          const _VerticalRule(),
-          _Stat(
-            value: formatCount(library.analyzedCount),
-            label: 'Organized',
-          ),
-          const _VerticalRule(),
-          _Stat(
-            value: formatCount(library.favoriteIds.length),
-            label: 'Favorites',
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _Stat extends StatelessWidget {
   const _Stat({required this.value, required this.label});
 
@@ -396,32 +415,32 @@ class _Stat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Column(
-        children: <Widget>[
-          Text(
-            value,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontSize: 22,
-                  color: AppColors.primary,
-                ),
-          ),
-          const SizedBox(height: 4),
-          Text(label, style: Theme.of(context).textTheme.bodySmall),
-        ],
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.14),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
+        ),
+        child: Column(
+          children: <Widget>[
+            Text(
+              value,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontSize: 21,
+                    color: Colors.white,
+                  ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.78),
+                  ),
+            ),
+          ],
+        ),
       ),
-    );
-  }
-}
-
-class _VerticalRule extends StatelessWidget {
-  const _VerticalRule();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 1,
-      height: 38,
-      color: AppColors.border,
     );
   }
 }
@@ -442,7 +461,8 @@ class _StorageCard extends StatelessWidget {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: AppColors.softShadow,
       ),
       child: Row(
         children: <Widget>[
@@ -456,7 +476,7 @@ class _StorageCard extends StatelessWidget {
                   child: CircularProgressIndicator(
                     value: total > 0 ? used : 0.0,
                     strokeWidth: 7,
-                    backgroundColor: AppColors.white,
+                    backgroundColor: AppColors.primaryFaint,
                     valueColor: const AlwaysStoppedAnimation<Color>(
                       AppColors.primary,
                     ),
@@ -561,22 +581,35 @@ class _QuickAction extends StatelessWidget {
     return Expanded(
       child: Material(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
+        elevation: 0,
+        shadowColor: Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 4),
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 4),
             child: Column(
               children: <Widget>[
                 Container(
-                  width: 38,
-                  height: 38,
+                  width: 44,
+                  height: 44,
                   decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.11),
-                    borderRadius: BorderRadius.circular(12),
+                    gradient: LinearGradient(
+                      colors: <Color>[color.withValues(alpha: 0.9), color],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(15),
+                    boxShadow: <BoxShadow>[
+                      BoxShadow(
+                        color: color.withValues(alpha: 0.35),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  child: Icon(icon, size: 19, color: color),
+                  child: Icon(icon, size: 21, color: Colors.white),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -614,7 +647,7 @@ class _RecentThumb extends StatelessWidget {
           asset: asset,
           size: 500,
           fit: BoxFit.cover,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(18),
         ),
       ),
     );
@@ -649,7 +682,7 @@ class _OrganizedThumb extends StatelessWidget {
                     child: PhotoThumbnail(
                       asset: asset,
                       size: 500,
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(18),
                     ),
                   ),
                   if (category != null)
