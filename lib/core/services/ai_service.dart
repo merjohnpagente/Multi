@@ -145,7 +145,8 @@ class AiService {
 
     final Stopwatch stopwatch = Stopwatch()..start();
     final _TfliteClassifier general = await _loadGeneral();
-    final List<_Prediction> generalTop = general.predict(decoded, topK: 7);
+    final List<_Prediction> generalTop =
+        general.predictAveraged(decoded, topK: 30);
     if (generalTop.isEmpty) {
       throw AiException('The AI model could not read this image.');
     }
@@ -217,7 +218,7 @@ class AiService {
       ...birdTop.take(2),
     ];
 
-    _Prediction primary = generalTop.first;
+    _Prediction primary = _consensus(generalTop);
     String primarySource = 'general';
     final _Prediction? plantCandidate = plantTop.isEmpty ? null : plantTop.first;
     final _Prediction? birdCandidate = birdTop.isEmpty ? null : birdTop.first;
@@ -362,6 +363,45 @@ class AiService {
     _onlineBlockedUntil = null;
   }
 
+  /// Picks the most likely CATEGORY by adding up the probabilities of all
+  /// related labels (e.g. 100+ dog breeds), then returns the best label of
+  /// that category with the combined confidence.
+  _Prediction _consensus(List<_Prediction> predictions) {
+    final Map<AppCategory, double> totals = <AppCategory, double>{};
+    final Map<AppCategory, _Prediction> best = <AppCategory, _Prediction>{};
+    for (final _Prediction prediction in predictions) {
+      final LabelInfo info = LabelTaxonomy.describe(
+        prediction.label,
+        source: prediction.source,
+      );
+      totals[info.category] =
+          (totals[info.category] ?? 0) + prediction.confidence;
+      best.putIfAbsent(info.category, () => prediction);
+    }
+    AppCategory? winner;
+    double winnerScore = 0;
+    totals.forEach((AppCategory category, double total) {
+      // Generic "other" objects are spread thin, so they get a lower weight.
+      final double weighted = category == AppCategory.other ? total * 0.8 : total;
+      if (weighted > winnerScore) {
+        winnerScore = weighted;
+        winner = category;
+      }
+    });
+    final AppCategory? chosen = winner;
+    if (chosen == null) {
+      return predictions.first;
+    }
+    final _Prediction top = best[chosen]!;
+    final double combined = totals[chosen]!;
+    final double confidence = combined > 0.99 ? 0.99 : combined;
+    return _Prediction(
+      label: top.label,
+      confidence: confidence < top.confidence ? top.confidence : confidence,
+      source: top.source,
+    );
+  }
+
   String _buildDescription({
     required String displayName,
     required LabelInfo info,
@@ -465,7 +505,7 @@ class _TfliteClassifier {
     }
   }
 
-  List<_Prediction> predict(img.Image source, {int topK = 5}) {
+  List<double> _scoresFor(img.Image source) {
     final Tensor inputTensor = interpreter.getInputTensor(0);
     final List<int> inputShape = inputTensor.shape;
     if (inputShape.length < 4) {
@@ -534,6 +574,10 @@ class _TfliteClassifier {
       );
     }
 
+    return scores;
+  }
+
+  List<_Prediction> _topPredictions(List<double> scores, int topK) {
     final int count = scores.length < labels.length ? scores.length : labels.length;
     if (count == 0) {
       return const <_Prediction>[];
@@ -563,6 +607,52 @@ class _TfliteClassifier {
       }
     }
     return predictions;
+  }
+
+  List<_Prediction> predict(img.Image source, {int topK = 5}) {
+    return _topPredictions(_scoresFor(source), topK);
+  }
+
+  /// Runs the model on the whole photo plus two centered crops and averages
+  /// the probabilities. This is steadier than a single squashed view.
+  List<_Prediction> predictAveraged(img.Image source, {int topK = 5}) {
+    final img.Image oriented = img.bakeOrientation(source);
+    final List<img.Image> views = <img.Image>[oriented];
+    final int shortSide =
+        oriented.width < oriented.height ? oriented.width : oriented.height;
+    for (final double fraction in <double>[0.875, 0.7]) {
+      final int size = (shortSide * fraction).round();
+      if (size < 32) {
+        continue;
+      }
+      views.add(
+        img.copyCrop(
+          oriented,
+          x: (oriented.width - size) ~/ 2,
+          y: (oriented.height - size) ~/ 2,
+          width: size,
+          height: size,
+        ),
+      );
+    }
+    List<double>? sum;
+    for (final img.Image view in views) {
+      final List<double> scores = _scoresFor(view);
+      if (sum == null) {
+        sum = List<double>.of(scores);
+      } else {
+        final int n = sum.length < scores.length ? sum.length : scores.length;
+        for (int i = 0; i < n; i++) {
+          sum[i] += scores[i];
+        }
+      }
+    }
+    if (sum == null) {
+      return const <_Prediction>[];
+    }
+    final List<double> averaged =
+        sum.map((double value) => value / views.length).toList(growable: false);
+    return _topPredictions(averaged, topK);
   }
 
   String _sourceForName(String modelName) {
