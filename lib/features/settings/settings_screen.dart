@@ -446,14 +446,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const _SettingsGroup(
                 children: <Widget>[
                   ListTile(
-                    leading: const _TileIcon(icon: Icons.info_outline_rounded),
-                    title: const Text('Photo Organizer'),
+                    leading: _TileIcon(icon: Icons.info_outline_rounded),
+                    title: Text('Photo Organizer'),
                     subtitle: Text(
                       'Version ${AppConstants.appVersion} · ${AppConstants.appTagline}',
                     ),
                   ),
-                  const Divider(),
-                  const ListTile(
+                  Divider(),
+                  ListTile(
                     leading: _TileIcon(icon: Icons.lock_outline_rounded),
                     title: Text('No account. No cloud. No tracking.'),
                     subtitle: Text(
