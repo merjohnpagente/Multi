@@ -3,8 +3,13 @@ import 'package:flutter/services.dart';
 
 import 'app_colors.dart';
 
+/// Minimal, clean theme.
+/// Headings use Plus Jakarta Sans ("Jakarta"), body text uses Inter.
 class AppTheme {
   AppTheme._();
+
+  static const String headingFont = 'Jakarta';
+  static const String bodyFont = 'Inter';
 
   static ThemeData get light {
     const ColorScheme scheme = ColorScheme(
@@ -21,70 +26,90 @@ class AppTheme {
 
     const TextTheme textTheme = TextTheme(
       displaySmall: TextStyle(
+        fontFamily: headingFont,
         fontSize: 32,
         height: 1.15,
         fontWeight: FontWeight.w700,
         color: AppColors.textPrimary,
-        letterSpacing: -0.8,
+        letterSpacing: -0.9,
       ),
       headlineMedium: TextStyle(
+        fontFamily: headingFont,
         fontSize: 28,
         height: 1.2,
         fontWeight: FontWeight.w700,
         color: AppColors.textPrimary,
-        letterSpacing: -0.5,
+        letterSpacing: -0.6,
       ),
       headlineSmall: TextStyle(
+        fontFamily: headingFont,
         fontSize: 24,
         height: 1.25,
         fontWeight: FontWeight.w700,
         color: AppColors.textPrimary,
-        letterSpacing: -0.3,
+        letterSpacing: -0.4,
       ),
       titleLarge: TextStyle(
+        fontFamily: headingFont,
         fontSize: 20,
         height: 1.3,
         fontWeight: FontWeight.w600,
         color: AppColors.textPrimary,
+        letterSpacing: -0.2,
       ),
       titleMedium: TextStyle(
+        fontFamily: headingFont,
         fontSize: 16,
         height: 1.35,
         fontWeight: FontWeight.w600,
         color: AppColors.textPrimary,
+        letterSpacing: -0.1,
       ),
       titleSmall: TextStyle(
+        fontFamily: headingFont,
         fontSize: 14,
         height: 1.35,
         fontWeight: FontWeight.w600,
         color: AppColors.textPrimary,
       ),
       bodyLarge: TextStyle(
+        fontFamily: bodyFont,
         fontSize: 16,
         height: 1.5,
         fontWeight: FontWeight.w400,
         color: AppColors.textPrimary,
       ),
       bodyMedium: TextStyle(
+        fontFamily: bodyFont,
         fontSize: 14,
         height: 1.5,
         fontWeight: FontWeight.w400,
         color: AppColors.textSecondary,
       ),
       bodySmall: TextStyle(
+        fontFamily: bodyFont,
         fontSize: 12,
         height: 1.4,
         fontWeight: FontWeight.w400,
         color: AppColors.textSecondary,
       ),
       labelLarge: TextStyle(
+        fontFamily: bodyFont,
         fontSize: 14,
         height: 1.3,
         fontWeight: FontWeight.w500,
         color: AppColors.textPrimary,
       ),
       labelMedium: TextStyle(
+        fontFamily: bodyFont,
         fontSize: 12,
+        height: 1.3,
+        fontWeight: FontWeight.w500,
+        color: AppColors.textSecondary,
+      ),
+      labelSmall: TextStyle(
+        fontFamily: bodyFont,
+        fontSize: 11,
         height: 1.3,
         fontWeight: FontWeight.w500,
         color: AppColors.textSecondary,
@@ -93,10 +118,12 @@ class AppTheme {
 
     return ThemeData(
       useMaterial3: true,
-      fontFamily: 'Jakarta',
+      fontFamily: bodyFont,
       colorScheme: scheme,
       scaffoldBackgroundColor: AppColors.background,
-      textTheme: textTheme.apply(fontFamily: 'Jakarta'),
+      textTheme: textTheme,
+      splashFactory: InkRipple.splashFactory,
+      highlightColor: Colors.transparent,
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.background,
         foregroundColor: AppColors.textPrimary,
@@ -110,9 +137,10 @@ class AppTheme {
           statusBarBrightness: Brightness.light,
         ),
         titleTextStyle: TextStyle(
-          fontFamily: 'Jakarta',
+          fontFamily: headingFont,
           fontSize: 20,
           fontWeight: FontWeight.w600,
+          letterSpacing: -0.2,
           color: AppColors.textPrimary,
         ),
         iconTheme: IconThemeData(color: AppColors.textPrimary),
@@ -123,28 +151,43 @@ class AppTheme {
         thickness: 1,
         space: 1,
       ),
+      listTileTheme: const ListTileThemeData(
+        iconColor: AppColors.textSecondary,
+        titleTextStyle: TextStyle(
+          fontFamily: bodyFont,
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+          color: AppColors.textPrimary,
+        ),
+        subtitleTextStyle: TextStyle(
+          fontFamily: bodyFont,
+          fontSize: 13,
+          height: 1.4,
+          color: AppColors.textSecondary,
+        ),
+      ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.card,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
         hintStyle: const TextStyle(
-          fontFamily: 'Jakarta',
+          fontFamily: bodyFont,
           color: AppColors.textTertiary,
           fontSize: 14,
         ),
         prefixIconColor: AppColors.textSecondary,
         suffixIconColor: AppColors.textSecondary,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(18),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.4),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -152,19 +195,20 @@ class AppTheme {
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppColors.danger, width: 1.4),
+          borderSide: const BorderSide(color: AppColors.danger, width: 1.2),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.white,
-          minimumSize: const Size.fromHeight(54),
+          elevation: 0,
+          minimumSize: const Size.fromHeight(52),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(16),
           ),
           textStyle: const TextStyle(
-            fontFamily: 'Jakarta',
+            fontFamily: headingFont,
             fontSize: 15,
             fontWeight: FontWeight.w600,
           ),
@@ -179,9 +223,9 @@ class AppTheme {
             borderRadius: BorderRadius.circular(16),
           ),
           textStyle: const TextStyle(
-            fontFamily: 'Jakarta',
+            fontFamily: headingFont,
             fontSize: 15,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
@@ -189,9 +233,9 @@ class AppTheme {
         style: TextButton.styleFrom(
           foregroundColor: AppColors.primary,
           textStyle: const TextStyle(
-            fontFamily: 'Jakarta',
+            fontFamily: headingFont,
             fontSize: 14,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
@@ -200,20 +244,20 @@ class AppTheme {
         selectedColor: AppColors.ink,
         disabledColor: AppColors.card,
         labelStyle: const TextStyle(
-          fontFamily: 'Jakarta',
+          fontFamily: bodyFont,
           fontSize: 13,
           fontWeight: FontWeight.w500,
           color: AppColors.textPrimary,
         ),
         secondaryLabelStyle: const TextStyle(
-          fontFamily: 'Jakarta',
+          fontFamily: bodyFont,
           fontSize: 13,
           fontWeight: FontWeight.w500,
           color: AppColors.white,
         ),
-        side: const BorderSide(color: AppColors.border),
+        side: BorderSide.none,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(20),
         ),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       ),
@@ -222,23 +266,25 @@ class AppTheme {
         elevation: 0,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(20),
         ),
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: AppColors.white,
         surfaceTintColor: Colors.transparent,
+        elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(24),
         ),
         titleTextStyle: const TextStyle(
-          fontFamily: 'Jakarta',
+          fontFamily: headingFont,
           fontSize: 18,
           fontWeight: FontWeight.w600,
+          letterSpacing: -0.2,
           color: AppColors.textPrimary,
         ),
         contentTextStyle: const TextStyle(
-          fontFamily: 'Jakarta',
+          fontFamily: bodyFont,
           fontSize: 14,
           height: 1.5,
           color: AppColors.textSecondary,
@@ -249,19 +295,19 @@ class AppTheme {
         surfaceTintColor: Colors.transparent,
         showDragHandle: true,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
       ),
       snackBarTheme: SnackBarThemeData(
         backgroundColor: AppColors.textPrimary,
         contentTextStyle: const TextStyle(
-          fontFamily: 'Jakarta',
+          fontFamily: bodyFont,
           fontSize: 13,
           color: AppColors.white,
         ),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
         ),
       ),
       progressIndicatorTheme: const ProgressIndicatorThemeData(
@@ -270,17 +316,14 @@ class AppTheme {
         circularTrackColor: AppColors.primarySoft,
       ),
       switchTheme: SwitchThemeData(
-        thumbColor: WidgetStateProperty.resolveWith(
-          (Set<WidgetState> states) => states.contains(WidgetState.selected)
-              ? AppColors.white
-              : AppColors.white,
-        ),
+        thumbColor: const WidgetStatePropertyAll<Color>(AppColors.white),
         trackColor: WidgetStateProperty.resolveWith(
           (Set<WidgetState> states) => states.contains(WidgetState.selected)
               ? AppColors.primary
               : AppColors.border,
         ),
-        trackOutlineColor: const WidgetStatePropertyAll<Color>(Colors.transparent),
+        trackOutlineColor:
+            const WidgetStatePropertyAll<Color>(Colors.transparent),
       ),
       sliderTheme: SliderThemeData(
         activeTrackColor: AppColors.primary,

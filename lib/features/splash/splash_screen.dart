@@ -195,7 +195,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                             style: textTheme.displaySmall?.copyWith(
                               color: AppColors.textPrimary,
                               fontSize: 42,
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w700,
                               letterSpacing: -1.4,
                             ),
                           ),

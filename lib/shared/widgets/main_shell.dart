@@ -37,46 +37,48 @@ class MainShell extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: navigationShell,
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: Container(
-          height: 64,
-          decoration: const BoxDecoration(
-            color: AppColors.white,
-            border: Border(top: BorderSide(color: AppColors.border)),
-          ),
-          child: Row(
-            children: <Widget>[
-              _NavItem(
-                icon: Icons.home_outlined,
-                activeIcon: Icons.home_rounded,
-                label: 'Home',
-                selected: _visualIndex == 0,
-                onTap: () => _onTap(context, 0),
-              ),
-              _NavItem(
-                icon: Icons.photo_library_outlined,
-                activeIcon: Icons.photo_library_rounded,
-                label: 'Gallery',
-                selected: _visualIndex == 1,
-                onTap: () => _onTap(context, 1),
-              ),
-              _ScanItem(onTap: () => _onTap(context, 2)),
-              _NavItem(
-                icon: Icons.grid_view_outlined,
-                activeIcon: Icons.grid_view_rounded,
-                label: 'Categories',
-                selected: _visualIndex == 3,
-                onTap: () => _onTap(context, 3),
-              ),
-              _NavItem(
-                icon: Icons.favorite_border_rounded,
-                activeIcon: Icons.favorite_rounded,
-                label: 'Favorites',
-                selected: _visualIndex == 4,
-                onTap: () => _onTap(context, 4),
-              ),
-            ],
+      bottomNavigationBar: DecoratedBox(
+        decoration: const BoxDecoration(
+          color: AppColors.white,
+          border: Border(top: BorderSide(color: AppColors.border)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: SizedBox(
+            height: 68,
+            child: Row(
+              children: <Widget>[
+                _NavItem(
+                  icon: Icons.home_outlined,
+                  activeIcon: Icons.home_rounded,
+                  label: 'Home',
+                  selected: _visualIndex == 0,
+                  onTap: () => _onTap(context, 0),
+                ),
+                _NavItem(
+                  icon: Icons.photo_library_outlined,
+                  activeIcon: Icons.photo_library_rounded,
+                  label: 'Gallery',
+                  selected: _visualIndex == 1,
+                  onTap: () => _onTap(context, 1),
+                ),
+                _ScanItem(onTap: () => _onTap(context, 2)),
+                _NavItem(
+                  icon: Icons.grid_view_outlined,
+                  activeIcon: Icons.grid_view_rounded,
+                  label: 'Categories',
+                  selected: _visualIndex == 3,
+                  onTap: () => _onTap(context, 3),
+                ),
+                _NavItem(
+                  icon: Icons.favorite_border_rounded,
+                  activeIcon: Icons.favorite_rounded,
+                  label: 'Favorites',
+                  selected: _visualIndex == 4,
+                  onTap: () => _onTap(context, 4),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -108,32 +110,31 @@ class _NavItem extends StatelessWidget {
         button: true,
         label: label,
         child: InkWell(
-          borderRadius: BorderRadius.circular(24),
           onTap: onTap,
+          splashColor: Colors.transparent,
+          hoverColor: Colors.transparent,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               AnimatedContainer(
                 duration: const Duration(milliseconds: 220),
-                curve: Curves.easeOut,
-                width: 42,
-                height: 28,
+                curve: Curves.easeOutCubic,
+                width: selected ? 48 : 36,
+                height: 30,
                 decoration: BoxDecoration(
-                  color: selected
-                      ? AppColors.primarySoft.withValues(alpha: 0.7)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(14),
+                  color: selected ? AppColors.primaryFaint : Colors.transparent,
+                  borderRadius: BorderRadius.circular(15),
                 ),
-                child: Icon(selected ? activeIcon : icon, size: 21, color: color),
+                child: Icon(selected ? activeIcon : icon, size: 22, color: color),
               ),
               const SizedBox(height: 3),
               Text(
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       color: color,
-                      fontSize: 10,
+                      fontSize: 10.5,
                       fontWeight:
                           selected ? FontWeight.w600 : FontWeight.w500,
                     ),
@@ -155,19 +156,30 @@ class _ScanItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: Center(
-        child: GestureDetector(
-          onTap: onTap,
-          child: Container(
-            width: 46,
-            height: 46,
-            decoration: const BoxDecoration(
-              color: AppColors.primary,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.auto_awesome_rounded,
-              size: 22,
-              color: AppColors.white,
+        child: Semantics(
+          button: true,
+          label: 'AI Scan',
+          child: GestureDetector(
+            onTap: onTap,
+            child: Container(
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: <BoxShadow>[
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.28),
+                    blurRadius: 14,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.auto_awesome_rounded,
+                size: 22,
+                color: AppColors.white,
+              ),
             ),
           ),
         ),
