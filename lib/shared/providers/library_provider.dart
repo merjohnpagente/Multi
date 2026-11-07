@@ -261,15 +261,6 @@ class LibraryController extends Notifier<LibraryState> {
         return;
       }
       _settings = settings;
-      if (!settings.autoAnalyze && _analyzing) {
-        _cancelAnalysis = true;
-      } else if (settings.autoAnalyze &&
-          _initialized &&
-          state.hasAccess &&
-          state.pendingCount > 0 &&
-          !_analyzing) {
-        unawaited(analyzePending());
-      }
     });
     return LibraryState.initial();
   }
@@ -570,12 +561,6 @@ class LibraryController extends Notifier<LibraryState> {
     _changeDebounce = Timer(const Duration(milliseconds: 700), () {
       unawaited(refresh());
     });
-    if (!_analyzing &&
-        state.hasAccess &&
-        state.pendingCount > 0 &&
-        _settings.autoAnalyze) {
-      unawaited(analyzePending());
-    }
   }
 
   void _startBackgroundWork() {
@@ -592,12 +577,6 @@ class LibraryController extends Notifier<LibraryState> {
     _backgroundRunning = true;
     try {
       await _enrichFileSizes();
-      if (_settings.autoAnalyze &&
-          state.isInitialized &&
-          state.hasAccess &&
-          state.pendingCount > 0) {
-        await analyzePending();
-      }
     } catch (error) {
       if (kDebugMode) {
         debugPrint('Background library work failed: $error');
@@ -677,7 +656,8 @@ class LibraryController extends Notifier<LibraryState> {
         _analyzing) {
       return;
     }
-    if (!force && !_settings.autoAnalyze) {
+    // Photos are only scanned when the user starts a scan.
+    if (!force) {
       return;
     }
     int pending = await _db.pendingAnalysisCount();

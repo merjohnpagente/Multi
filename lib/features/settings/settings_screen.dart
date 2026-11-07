@@ -128,28 +128,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             children: <Widget>[
               const _SectionTitle(
                 title: 'AI & organization',
-                subtitle: 'Offline AI by default, optional online AI for accuracy.',
+                subtitle: 'Scan your photos only when you choose to.',
               ),
               _SettingsGroup(
                 children: <Widget>[
-                  SwitchListTile.adaptive(
-                    value: settings.autoAnalyze,
-                    onChanged: (bool value) {
-                      unawaited(
-                        ref
-                            .read(settingsProvider.notifier)
-                            .setAutoAnalyze(value),
-                      );
-                    },
-                    secondary: const _TileIcon(
-                      icon: Icons.auto_awesome_rounded,
-                    ),
-                    title: const Text('Automatic AI organization'),
-                    subtitle: const Text(
-                      'Identify new photos in the background, a few at a time.',
-                    ),
-                  ),
-                  const Divider(),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                     child: Column(
