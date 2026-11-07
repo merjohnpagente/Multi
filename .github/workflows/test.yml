@@ -19,6 +19,11 @@ jobs:
         with:
           channel: stable
 
+      - name: Create .env from secret
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: printf 'GEMINI_API_KEY=%s\n' "$GEMINI_API_KEY" > .env
+
       - name: Install dependencies
         run: flutter pub get
 

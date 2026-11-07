@@ -3,7 +3,7 @@ class AppConstants {
 
   static const String appName = 'J-Pix';
   static const String appTagline = 'Organize. Find. Discover.';
-  static const String appVersion = '1.2.0';
+  static const String appVersion = '1.3.0';
 
   static const String databaseName = 'photo_organizer.db';
   static const int databaseVersion = 1;

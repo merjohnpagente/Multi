@@ -1,3 +1,4 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/services/ai_service.dart';
@@ -21,6 +22,7 @@ final Provider<MetadataService> metadataServiceProvider =
 
 final Provider<AiService> aiServiceProvider = Provider<AiService>((Ref ref) {
   final AiService service = AiService();
+  service.onlineApiKey = dotenv.maybeGet('GEMINI_API_KEY');
   ref.onDispose(service.dispose);
   return service;
 });

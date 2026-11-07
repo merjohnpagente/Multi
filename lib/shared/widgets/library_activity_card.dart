@@ -13,8 +13,7 @@ class LibraryActivityCard extends ConsumerWidget {
     final LibraryController controller = ref.read(libraryProvider.notifier);
 
     final bool busy = library.isAnalyzing || library.isIndexing;
-    final bool hasPending = library.pendingCount > 0;
-    if (!busy && !hasPending && library.error == null) {
+    if (!busy && library.error == null) {
       return const SizedBox.shrink();
     }
 
@@ -67,9 +66,7 @@ class LibraryActivityCard extends ConsumerWidget {
                           ? 'Organizing on device'
                           : library.autoScanCancelled
                               ? 'AI scan paused'
-                              : hasPending
-                                  ? 'Photos waiting to be organized'
-                                  : 'Library ready',
+                              : 'Library ready',
                       style: Theme.of(context).textTheme.titleSmall,
                     ),
                     const SizedBox(height: 2),
@@ -77,9 +74,7 @@ class LibraryActivityCard extends ConsumerWidget {
                       library.isAnalyzing
                           ? '${library.sessionProcessed} of ${library.sessionTotal} checked this session'
                           : library.error ??
-                              (hasPending
-                                  ? '${library.pendingCount} photos can be identified privately on this phone.'
-                                  : 'All photos have an AI label.'),
+                              'Photos you add are sorted into folders.',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],
@@ -90,11 +85,6 @@ class LibraryActivityCard extends ConsumerWidget {
                   onPressed: controller.pauseAnalysis,
                   child: const Text('Pause'),
                 )
-              else if (hasPending)
-                TextButton(
-                  onPressed: () => controller.analyzePending(force: true),
-                  child: Text(library.autoScanCancelled ? 'Resume' : 'Start'),
-                ),
             ],
           ),
           if (library.isAnalyzing) ...<Widget>[
@@ -108,7 +98,7 @@ class LibraryActivityCard extends ConsumerWidget {
               ),
             ),
           ],
-          if (library.error != null && hasPending) ...<Widget>[
+          if (library.error != null && library.isAnalyzing) ...<Widget>[
             const SizedBox(height: 8),
             Text(
               library.error!,

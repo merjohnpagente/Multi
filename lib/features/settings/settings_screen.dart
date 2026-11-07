@@ -8,6 +8,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/services/settings_service.dart';
 import '../../core/utilities/formatters.dart';
 import '../../shared/providers/library_provider.dart';
+import '../../shared/providers/service_providers.dart';
 import '../../shared/providers/settings_provider.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -127,28 +128,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             children: <Widget>[
               const _SectionTitle(
                 title: 'AI & organization',
-                subtitle: 'Everything runs locally on this device.',
+                subtitle: 'Scan your photos only when you choose to.',
               ),
               _SettingsGroup(
                 children: <Widget>[
-                  SwitchListTile.adaptive(
-                    value: settings.autoAnalyze,
-                    onChanged: (bool value) {
-                      unawaited(
-                        ref
-                            .read(settingsProvider.notifier)
-                            .setAutoAnalyze(value),
-                      );
-                    },
-                    secondary: const _TileIcon(
-                      icon: Icons.auto_awesome_rounded,
-                    ),
-                    title: const Text('Automatic AI organization'),
-                    subtitle: const Text(
-                      'Identify new photos in the background, a few at a time.',
-                    ),
-                  ),
-                  const Divider(),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                     child: Column(
@@ -269,6 +252,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ],
               ),
               const _SectionTitle(
+                title: 'Online AI (Gemini)',
+                subtitle: 'More accurate photo detection. Needs internet.',
+              ),
+              _SettingsGroup(
+                children: <Widget>[
+                  ListTile(
+                    leading: const _TileIcon(icon: Icons.cloud_outlined),
+                    title: Text(
+                      ref.watch(aiServiceProvider).onlineEnabled
+                          ? 'Online AI is on'
+                          : 'Online AI is off',
+                    ),
+                    subtitle: Text(
+                      ref.watch(aiServiceProvider).onlineEnabled
+                          ? 'Photos are identified with Gemini first, with the offline models as backup.'
+                          : 'Using offline AI only.',
+                    ),
+                  ),
+                ],
+              ),
+              const _SectionTitle(
                 title: 'Gallery appearance',
                 subtitle: 'Make the photo grid comfortable for you.',
               ),
@@ -349,9 +353,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 children: <Widget>[
                   const ListTile(
                     leading: _TileIcon(icon: Icons.shield_outlined),
-                    title: Text('100% on-device'),
+                    title: Text('On-device by default'),
                     subtitle: Text(
-                      'Photo Organizer has no internet permission and never uploads photos.',
+                      'Photos stay on this phone unless online AI is turned on. '
+                      'With a key, a small copy of each photo is sent to '
+                      'Google Gemini to identify it.',
                     ),
                   ),
                   const Divider(),
@@ -561,3 +567,4 @@ class _TileIcon extends StatelessWidget {
     );
   }
 }
+

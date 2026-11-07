@@ -10,6 +10,7 @@ import '../constants/app_constants.dart';
 import '../utilities/formatters.dart';
 import '../utilities/label_taxonomy.dart';
 import '../utilities/slug_utils.dart';
+import 'gemini_service.dart';
 
 class AiException implements Exception {
   AiException(this.message);
@@ -33,6 +34,18 @@ class AiService {
   Future<_TfliteClassifier>? _plantsLoading;
   Future<_TfliteClassifier>? _birdsLoading;
   bool _disposed = false;
+
+  final GeminiService _gemini = GeminiService();
+
+  /// Gemini API key. When set, photos are identified online first and the
+  /// on-device models are used as a fallback.
+  String? onlineApiKey;
+  DateTime? _onlineBlockedUntil;
+
+  /// Reason the last online attempt failed (null when it worked or was skipped).
+  String? lastOnlineError;
+
+  bool get onlineEnabled => (onlineApiKey ?? '').trim().isNotEmpty;
 
   bool get isReady => _general != null;
 
@@ -116,6 +129,11 @@ class AiService {
     }
     if (bytes.isEmpty) {
       throw AiException('The selected image is empty.');
+    }
+
+    final AiIdentification? online = await _classifyOnline(bytes, extension);
+    if (online != null) {
+      return online;
     }
 
     final img.Image? decoded = img.decodeImage(bytes);
@@ -285,6 +303,63 @@ class AiService {
       uncertain: uncertain,
       inferenceMs: stopwatch.elapsedMilliseconds,
     );
+  }
+
+  Future<AiIdentification?> _classifyOnline(
+    Uint8List bytes,
+    String extension,
+  ) async {
+    final String key = (onlineApiKey ?? '').trim();
+    if (key.isEmpty) {
+      lastOnlineError = null;
+      return null;
+    }
+    final DateTime? blocked = _onlineBlockedUntil;
+    if (blocked != null && DateTime.now().isBefore(blocked)) {
+      return null;
+    }
+    try {
+      final AiIdentification result = await _gemini.classify(
+        bytes,
+        apiKey: key,
+        extension: extension,
+      );
+      lastOnlineError = null;
+      return result;
+    } on GeminiException catch (error) {
+      lastOnlineError = error.message;
+      if (error.isRateLimited) {
+        _onlineBlockedUntil = DateTime.now().add(const Duration(seconds: 60));
+      } else if (error.isAuthError) {
+        _onlineBlockedUntil = DateTime.now().add(const Duration(minutes: 5));
+      }
+      return null;
+    } catch (_) {
+      lastOnlineError = 'Online AI failed.';
+      return null;
+    }
+  }
+
+  /// Tests the saved key with a tiny image. Returns null when it works,
+  /// otherwise a readable error message.
+  Future<String?> testOnlineKey(String apiKey) async {
+    try {
+      final img.Image probe = img.Image(width: 64, height: 64);
+      img.fill(probe, color: img.ColorRgb8(120, 180, 90));
+      await _gemini.classify(
+        Uint8List.fromList(img.encodeJpg(probe)),
+        apiKey: apiKey.trim(),
+      );
+      return null;
+    } on GeminiException catch (error) {
+      return error.message;
+    } catch (_) {
+      return 'Could not reach Gemini.';
+    }
+  }
+
+  void resetOnlineCooldown() {
+    _onlineBlockedUntil = null;
   }
 
   String _buildDescription({
@@ -526,4 +601,21 @@ class _TfliteClassifier {
     interpreter.close();
     options.delete();
   }
+}
+
+/// Shrinks a large photo before analysis so identification stays fast.
+/// Runs in a background isolate through `compute`.
+Uint8List downscaleForAnalysis(Uint8List bytes) {
+  final img.Image? decoded = img.decodeImage(bytes);
+  if (decoded == null) {
+    return bytes;
+  }
+  const int maxSide = 1024;
+  if (decoded.width <= maxSide && decoded.height <= maxSide) {
+    return bytes;
+  }
+  final img.Image resized = decoded.width >= decoded.height
+      ? img.copyResize(decoded, width: maxSide)
+      : img.copyResize(decoded, height: maxSide);
+  return Uint8List.fromList(img.encodeJpg(resized, quality: 90));
 }

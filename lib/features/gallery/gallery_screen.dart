@@ -239,16 +239,31 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen> {
           await file.readAsBytes(),
         ));
       }
-      final int saved =
-          await ref.read(libraryProvider.notifier).importPhotos(items);
       messenger.showSnackBar(
         SnackBar(
           content: Text(
+            ref.read(libraryProvider.notifier).onlineAiEnabled
+                ? 'Identifying with online AI and saving into folders…'
+                : 'Identifying and saving into folders…',
+          ),
+        ),
+      );
+      final LibraryController controller = ref.read(libraryProvider.notifier);
+      final int saved = await controller.importPhotos(items);
+      final String? importError = controller.lastImportError;
+      final String? onlineError = controller.lastOnlineError;
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 6),
+          content: Text(
             saved == 0
-                ? 'Could not add the photos.'
-                : saved == 1
-                    ? '1 photo added. Organizing it now…'
-                    : '$saved photos added. Organizing them now…',
+                ? 'Could not add the photos. ${importError ?? ''}'.trim()
+                : onlineError != null
+                    ? '$saved added using offline AI. Online AI: $onlineError'
+                    : saved == 1
+                        ? '1 photo added and sorted into its folder.'
+                        : '$saved photos added and sorted into folders.',
           ),
         ),
       );

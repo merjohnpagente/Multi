@@ -261,15 +261,6 @@ class LibraryController extends Notifier<LibraryState> {
         return;
       }
       _settings = settings;
-      if (!settings.autoAnalyze && _analyzing) {
-        _cancelAnalysis = true;
-      } else if (settings.autoAnalyze &&
-          _initialized &&
-          state.hasAccess &&
-          state.pendingCount > 0 &&
-          !_analyzing) {
-        unawaited(analyzePending());
-      }
     });
     return LibraryState.initial();
   }
@@ -570,12 +561,6 @@ class LibraryController extends Notifier<LibraryState> {
     _changeDebounce = Timer(const Duration(milliseconds: 700), () {
       unawaited(refresh());
     });
-    if (!_analyzing &&
-        state.hasAccess &&
-        state.pendingCount > 0 &&
-        _settings.autoAnalyze) {
-      unawaited(analyzePending());
-    }
   }
 
   void _startBackgroundWork() {
@@ -592,12 +577,6 @@ class LibraryController extends Notifier<LibraryState> {
     _backgroundRunning = true;
     try {
       await _enrichFileSizes();
-      if (_settings.autoAnalyze &&
-          state.isInitialized &&
-          state.hasAccess &&
-          state.pendingCount > 0) {
-        await analyzePending();
-      }
     } catch (error) {
       if (kDebugMode) {
         debugPrint('Background library work failed: $error');
@@ -677,7 +656,8 @@ class LibraryController extends Notifier<LibraryState> {
         _analyzing) {
       return;
     }
-    if (!force && !_settings.autoAnalyze) {
+    // Photos are only scanned when the user starts a scan.
+    if (!force) {
       return;
     }
     int pending = await _db.pendingAnalysisCount();
@@ -897,10 +877,23 @@ class LibraryController extends Notifier<LibraryState> {
     return before.difference(after).length;
   }
 
-  /// Saves picked images into the device gallery (Pictures/J-Pix), then
-  /// refreshes the library and organizes them automatically.
+  /// Why the last import failed (null when it worked).
+  String? lastImportError;
+
+  /// Whether the last import used the online AI (Gemini).
+  bool get onlineAiEnabled => _ai.onlineEnabled;
+
+  /// Last problem reported by the online AI, if any.
+  String? get lastOnlineError => _ai.lastOnlineError;
+
+  /// Identifies each picked image first, then saves it into a real folder on
+  /// the phone: Pictures/J-Pix/<Category>/<Subcategory>.
   Future<int> importPhotos(List<MapEntry<String, Uint8List>> items) async {
     int saved = 0;
+    lastImportError = null;
+    final List<MapEntry<AssetEntity, AiIdentification>> identified =
+        <MapEntry<AssetEntity, AiIdentification>>[];
+    bool anyUnidentified = false;
     for (final MapEntry<String, Uint8List> item in items) {
       String name = item.key.trim().isEmpty ? 'photo' : item.key.trim();
       if (!RegExp(r'\.(jpe?g|png|webp|heic|heif|gif|bmp)$',
@@ -909,17 +902,69 @@ class LibraryController extends Notifier<LibraryState> {
         name = '$name.jpg';
       }
       name = '${DateTime.now().millisecondsSinceEpoch}_$name';
-      final AssetEntity? entity = await _photo.saveImageBytes(item.value, name);
+
+      AiIdentification? result;
+      try {
+        final Uint8List small = await compute(downscaleForAnalysis, item.value);
+        result = await _ai.classifyBytes(
+          small,
+          confidenceThreshold: _settings.confidenceThreshold,
+          thorough: true,
+          extension: normalizedExtension(name, null),
+        );
+      } catch (_) {
+        result = null;
+        anyUnidentified = true;
+      }
+
+      final String folder =
+          result == null ? 'Pictures/J-Pix/Other' : _folderFor(result);
+      final AssetEntity? entity = await _photo.saveImageBytes(
+        item.value,
+        name,
+        relativePath: folder,
+      );
       if (entity != null) {
         saved++;
+        if (result != null) {
+          identified.add(MapEntry<AssetEntity, AiIdentification>(entity, result));
+        }
+      } else {
+        lastImportError = _photo.lastSaveError ?? 'Could not save the photo.';
       }
     }
     if (saved > 0) {
       _photo.clearThumbnailCache();
       await refresh();
-      unawaited(analyzePending(force: true));
+      for (final MapEntry<AssetEntity, AiIdentification> entry in identified) {
+        try {
+          await saveAiResult(
+            identification: entry.value,
+            assetId: entry.key.id,
+          );
+        } catch (_) {
+          anyUnidentified = true;
+        }
+      }
+      if (anyUnidentified) {
+        unawaited(analyzePending(force: true));
+      }
     }
     return saved;
+  }
+
+  String _folderFor(AiIdentification result) {
+    String clean(String value) =>
+        value.replaceAll(RegExp(r'[\\/:*?"<>|]'), ' ').replaceAll(RegExp(r'\s+'), ' ').trim();
+    if (result.uncertain) {
+      return 'Pictures/J-Pix/Other';
+    }
+    final String category = clean(result.category.label);
+    final String sub = clean(result.subcategory);
+    if (sub.isEmpty || sub.toLowerCase() == category.toLowerCase()) {
+      return 'Pictures/J-Pix/$category';
+    }
+    return 'Pictures/J-Pix/$category/$sub';
   }
 
   Future<AiIdentification?> analyzeAsset(AssetEntity asset) async {
