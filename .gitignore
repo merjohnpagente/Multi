@@ -19,3 +19,6 @@ android/key.properties
 
 # System
 .DS_Store
+
+# Secrets
+.env

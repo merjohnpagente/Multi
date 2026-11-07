@@ -12,6 +12,7 @@ dependencies:
   collection: ^1.18.0
   crypto: ^3.0.6
   exif: ^3.3.0
+  flutter_dotenv: ^5.2.1
   flutter_riverpod: ^2.6.1
   go_router: ^14.6.2
   image: ^4.3.0
@@ -32,6 +33,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - .env
     - assets/models/
     - assets/images/
   fonts:
