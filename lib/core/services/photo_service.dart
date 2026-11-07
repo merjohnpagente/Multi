@@ -260,15 +260,24 @@ class PhotoService {
     }
   }
 
-  Future<AssetEntity?> saveImageBytes(Uint8List bytes, String filename) async {
+  /// Why the last [saveImageBytes] call failed (null when it worked).
+  String? lastSaveError;
+
+  Future<AssetEntity?> saveImageBytes(
+    Uint8List bytes,
+    String filename, {
+    String relativePath = 'Pictures/J-Pix',
+  }) async {
     try {
+      lastSaveError = null;
       return await PhotoManager.editor.saveImage(
         bytes,
         filename: filename,
         title: filename,
-        relativePath: 'Pictures/J-Pix',
+        relativePath: relativePath,
       );
-    } catch (_) {
+    } catch (error) {
+      lastSaveError = error.toString();
       return null;
     }
   }

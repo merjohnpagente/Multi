@@ -11,6 +11,7 @@ class AppSettings {
     required this.allowMetadata,
     required this.scanReminders,
     required this.duplicateReminders,
+    this.geminiApiKey = '',
   });
 
   final double confidenceThreshold;
@@ -21,6 +22,7 @@ class AppSettings {
   final bool allowMetadata;
   final bool scanReminders;
   final bool duplicateReminders;
+  final String geminiApiKey;
 
   static const AppSettings defaults = AppSettings(
     confidenceThreshold: AppConstants.defaultConfidenceThreshold,
@@ -42,6 +44,7 @@ class AppSettings {
     bool? allowMetadata,
     bool? scanReminders,
     bool? duplicateReminders,
+    String? geminiApiKey,
   }) {
     return AppSettings(
       confidenceThreshold: confidenceThreshold ?? this.confidenceThreshold,
@@ -52,6 +55,7 @@ class AppSettings {
       allowMetadata: allowMetadata ?? this.allowMetadata,
       scanReminders: scanReminders ?? this.scanReminders,
       duplicateReminders: duplicateReminders ?? this.duplicateReminders,
+      geminiApiKey: geminiApiKey ?? this.geminiApiKey,
     );
   }
 }
@@ -69,6 +73,7 @@ class SettingsService {
   static const String _keyAllowMetadata = 'allow_metadata';
   static const String _keyScanReminders = 'scan_reminders';
   static const String _keyDuplicateReminders = 'duplicate_reminders';
+  static const String _keyGeminiApiKey = 'gemini_api_key';
 
   Future<AppSettings> load() async {
     final String? confidence = await _db.getSetting(_keyConfidence);
@@ -80,6 +85,7 @@ class SettingsService {
     final String? scanReminders = await _db.getSetting(_keyScanReminders);
     final String? duplicateReminders =
         await _db.getSetting(_keyDuplicateReminders);
+    final String? geminiApiKey = await _db.getSetting(_keyGeminiApiKey);
 
     return AppSettings(
       confidenceThreshold: (double.tryParse(confidence ?? '') ??
@@ -114,6 +120,7 @@ class SettingsService {
         duplicateReminders,
         AppSettings.defaults.duplicateReminders,
       ),
+      geminiApiKey: (geminiApiKey ?? '').trim(),
     );
   }
 
@@ -129,6 +136,7 @@ class SettingsService {
       _keyDuplicateReminders,
       settings.duplicateReminders.toString(),
     );
+    await _db.setSetting(_keyGeminiApiKey, settings.geminiApiKey.trim());
   }
 
   bool _parseBool(String? value, bool fallback) {

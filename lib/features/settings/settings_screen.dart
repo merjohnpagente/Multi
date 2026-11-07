@@ -8,6 +8,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/services/settings_service.dart';
 import '../../core/utilities/formatters.dart';
 import '../../shared/providers/library_provider.dart';
+import '../../shared/providers/service_providers.dart';
 import '../../shared/providers/settings_provider.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -127,7 +128,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             children: <Widget>[
               const _SectionTitle(
                 title: 'AI & organization',
-                subtitle: 'Everything runs locally on this device.',
+                subtitle: 'Offline AI by default, optional online AI for accuracy.',
               ),
               _SettingsGroup(
                 children: <Widget>[
@@ -269,6 +270,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ],
               ),
               const _SectionTitle(
+                title: 'Online AI (Gemini)',
+                subtitle: 'More accurate photo detection. Needs internet.',
+              ),
+              _SettingsGroup(
+                children: <Widget>[
+                  _GeminiKeyTile(savedKey: settings.geminiApiKey),
+                ],
+              ),
+              const _SectionTitle(
                 title: 'Gallery appearance',
                 subtitle: 'Make the photo grid comfortable for you.',
               ),
@@ -349,9 +359,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 children: <Widget>[
                   const ListTile(
                     leading: _TileIcon(icon: Icons.shield_outlined),
-                    title: Text('100% on-device'),
+                    title: Text('On-device by default'),
                     subtitle: Text(
-                      'Photo Organizer has no internet permission and never uploads photos.',
+                      'Photos stay on this phone unless you add a Gemini key. '
+                      'With a key, a small copy of each photo is sent to '
+                      'Google Gemini to identify it.',
                     ),
                   ),
                   const Divider(),
@@ -558,6 +570,129 @@ class _TileIcon extends StatelessWidget {
       ),
       alignment: Alignment.center,
       child: Icon(icon, size: 18, color: AppColors.primary),
+    );
+  }
+}
+
+
+class _GeminiKeyTile extends ConsumerStatefulWidget {
+  const _GeminiKeyTile({required this.savedKey});
+
+  final String savedKey;
+
+  @override
+  ConsumerState<_GeminiKeyTile> createState() => _GeminiKeyTileState();
+}
+
+class _GeminiKeyTileState extends ConsumerState<_GeminiKeyTile> {
+  late final TextEditingController _controller =
+      TextEditingController(text: widget.savedKey);
+  bool _obscure = true;
+  bool _busy = false;
+  String? _message;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final String value = _controller.text.trim();
+    setState(() {
+      _busy = true;
+      _message = null;
+    });
+    if (value.isEmpty) {
+      await ref.read(settingsProvider.notifier).setGeminiApiKey('');
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _busy = false;
+        _message = 'Online AI is off. Using offline AI only.';
+      });
+      return;
+    }
+    final String? error = await ref.read(aiServiceProvider).testOnlineKey(value);
+    if (error == null) {
+      await ref.read(settingsProvider.notifier).setGeminiApiKey(value);
+    }
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _busy = false;
+      _message = error == null
+          ? 'Key works. Online AI is on.'
+          : 'Key not saved. $error';
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              const _TileIcon(icon: Icons.cloud_outlined),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  'Gemini API key',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Get a free key at aistudio.google.com/apikey and paste it here. '
+            'It is saved only on this phone. Leave empty to stay offline.',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _controller,
+            obscureText: _obscure,
+            autocorrect: false,
+            enableSuggestions: false,
+            decoration: InputDecoration(
+              hintText: 'AIza...',
+              suffixIcon: IconButton(
+                onPressed: () => setState(() => _obscure = !_obscure),
+                icon: Icon(
+                  _obscure
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: <Widget>[
+              FilledButton(
+                onPressed: _busy ? null : _save,
+                child: _busy
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Test & save'),
+              ),
+            ],
+          ),
+          if (_message != null) ...<Widget>[
+            const SizedBox(height: 10),
+            Text(_message!, style: Theme.of(context).textTheme.bodySmall),
+          ],
+        ],
+      ),
     );
   }
 }

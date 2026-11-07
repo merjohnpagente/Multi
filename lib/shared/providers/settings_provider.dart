@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/services/ai_service.dart';
 import '../../core/services/settings_service.dart';
 import 'service_providers.dart';
 
@@ -10,14 +11,20 @@ final AsyncNotifierProvider<SettingsController, AppSettings> settingsProvider =
 
 class SettingsController extends AsyncNotifier<AppSettings> {
   @override
-  Future<AppSettings> build() {
-    return ref.watch(settingsServiceProvider).load();
+  Future<AppSettings> build() async {
+    final AppSettings settings =
+        await ref.watch(settingsServiceProvider).load();
+    ref.read(aiServiceProvider).onlineApiKey = settings.geminiApiKey;
+    return settings;
   }
 
   AppSettings get current => state.valueOrNull ?? AppSettings.defaults;
 
   Future<void> apply(AppSettings settings) async {
     state = AsyncData<AppSettings>(settings);
+    final AiService ai = ref.read(aiServiceProvider);
+    ai.onlineApiKey = settings.geminiApiKey;
+    ai.resetOnlineCooldown();
     await ref.read(settingsServiceProvider).save(settings);
   }
 
@@ -44,4 +51,8 @@ class SettingsController extends AsyncNotifier<AppSettings> {
 
   Future<void> setDuplicateReminders(bool value) =>
       apply(current.copyWith(duplicateReminders: value));
+
+  Future<void> setGeminiApiKey(String value) =>
+      apply(current.copyWith(geminiApiKey: value.trim()));
 }
+
