@@ -674,50 +674,6 @@ class _PhotoDetailsScreenState extends ConsumerState<PhotoDetailsScreen> {
   }
 }
 
-class _ActionButton extends StatelessWidget {
-  const _ActionButton({
-    required this.icon,
-    required this.label,
-    required this.color,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final Color color;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.card,
-      borderRadius: BorderRadius.circular(15),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(15),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 13),
-          child: Column(
-            children: <Widget>[
-              Icon(icon, size: 20, color: onTap == null ? AppColors.textTertiary : color),
-              const SizedBox(height: 5),
-              Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: AppColors.textPrimary,
-                      fontSize: 10.5,
-                    ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _AiSection extends StatelessWidget {
   const _AiSection({
     required this.record,

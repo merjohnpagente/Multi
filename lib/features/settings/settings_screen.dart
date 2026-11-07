@@ -125,7 +125,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           return ListView(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 36),
             children: <Widget>[
-              _SectionTitle(
+              const _SectionTitle(
                 title: 'AI & organization',
                 subtitle: 'Everything runs locally on this device.',
               ),
@@ -268,7 +268,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ],
                 ],
               ),
-              _SectionTitle(
+              const _SectionTitle(
                 title: 'Gallery appearance',
                 subtitle: 'Make the photo grid comfortable for you.',
               ),
@@ -341,7 +341,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                 ],
               ),
-              _SectionTitle(
+              const _SectionTitle(
                 title: 'Privacy & metadata',
                 subtitle: 'You stay in control of local information.',
               ),
@@ -373,16 +373,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
                   ),
                   const Divider(),
-                  ListTile(
-                    leading: const _TileIcon(icon: Icons.memory_rounded),
-                    title: const Text('Offline AI models'),
-                    subtitle: const Text(
+                  const ListTile(
+                    leading: _TileIcon(icon: Icons.memory_rounded),
+                    title: Text('Offline AI models'),
+                    subtitle: Text(
                       'MobileNetV1 · AIY Plants · AIY Birds · bundled in the app',
                     ),
                   ),
                 ],
               ),
-              _SectionTitle(
+              const _SectionTitle(
                 title: 'Library data',
                 subtitle: 'Manage the local index without changing photos.',
               ),
@@ -430,9 +430,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
                     trailing: const Icon(Icons.chevron_right_rounded),
                     onTap: () async {
+                      final ScaffoldMessengerState messenger =
+                          ScaffoldMessenger.of(context);
                       await ref.read(libraryProvider.notifier).runMemoryCleanup();
                       if (mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
+                        messenger.showSnackBar(
                           const SnackBar(content: Text('Thumbnail cache cleared')),
                         );
                       }
@@ -440,8 +442,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                 ],
               ),
-              _SectionTitle(title: 'About'),
-              _SettingsGroup(
+              const _SectionTitle(title: 'About'),
+              const _SettingsGroup(
                 children: <Widget>[
                   ListTile(
                     leading: const _TileIcon(icon: Icons.info_outline_rounded),

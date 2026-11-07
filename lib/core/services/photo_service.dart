@@ -63,7 +63,7 @@ class PhotoService {
       type: RequestType.image,
       filterOption: FilterOptionGroup(
         orders: <OrderOption>[
-          OrderOption(type: OrderOptionType.createDate, asc: false),
+          const OrderOption(type: OrderOptionType.createDate, asc: false),
         ],
       ),
     );
@@ -120,15 +120,13 @@ class PhotoService {
           if (name.isEmpty) {
             name = '${asset.id}.jpg';
           }
-          final AssetEntity? entity = await PhotoManager.editor.saveImage(
+          await PhotoManager.editor.saveImage(
             bytes,
             filename: name,
             title: name,
             relativePath: 'Pictures/$exportRoot/$folder',
           );
-          if (entity != null) {
-            saved++;
-          }
+          saved++;
         }
       } catch (_) {
         // Skip photos that cannot be read.

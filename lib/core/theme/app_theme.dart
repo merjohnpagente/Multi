@@ -19,7 +19,7 @@ class AppTheme {
       onSurface: AppColors.textPrimary,
     );
 
-    final TextTheme textTheme = const TextTheme(
+    const TextTheme textTheme = TextTheme(
       displaySmall: TextStyle(
         fontSize: 32,
         height: 1.15,

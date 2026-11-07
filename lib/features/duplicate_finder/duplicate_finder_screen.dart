@@ -162,7 +162,7 @@ class _DuplicateFinderScreenState
               title: Text(
                 'Delete ${assets.length} ${assets.length == 1 ? 'duplicate' : 'duplicates'}?',
               ),
-              content: Text(
+              content: const Text(
                 'The selected photos will be removed from your device. '
                 'Keep at least one copy in each group if you want to preserve it. '
                 'This action cannot be undone in Photo Organizer.',

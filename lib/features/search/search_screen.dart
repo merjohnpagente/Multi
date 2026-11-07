@@ -95,8 +95,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             ),
           ),
         ),
-        actions: <Widget>[
-          const SizedBox(width: 14),
+        actions: const <Widget>[
+          SizedBox(width: 14),
         ],
       ),
       body: _query.isEmpty

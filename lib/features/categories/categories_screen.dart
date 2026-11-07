@@ -230,8 +230,7 @@ class _CategoryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final Color tint = category.tint;
     final BorderRadius radius = BorderRadius.circular(20);
-    return Container(
-      child: ClipRRect(
+    return ClipRRect(
         borderRadius: radius,
         child: Stack(
           children: <Widget>[
@@ -335,7 +334,6 @@ class _CategoryCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
     );
   }
 }
