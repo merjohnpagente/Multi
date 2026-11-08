@@ -32,7 +32,7 @@ class HomeScreen extends ConsumerWidget {
               ),
               Expanded(
                 child: library.isLoading
-                    ? const Center(child: CircularProgressIndicator())
+                    ? const _HomeSkeleton()
                     : const PermissionGate(),
               ),
             ],
@@ -671,6 +671,38 @@ class _OrganizedThumb extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+
+/// Quiet placeholder shown for a moment while the library opens.
+class _HomeSkeleton extends StatelessWidget {
+  const _HomeSkeleton();
+
+  Widget _box(double height) {
+    return Container(
+      height: height,
+      margin: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F3F5),
+        borderRadius: BorderRadius.circular(18),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.only(top: 4),
+      children: <Widget>[
+        _box(52),
+        _box(150),
+        _box(96),
+        _box(96),
+        _box(96),
+      ],
     );
   }
 }
