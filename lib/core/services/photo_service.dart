@@ -85,7 +85,7 @@ class PhotoService {
       );
     }
     if (paths.isEmpty) {
-      return const <AssetEntity>[];
+      return _withSessionSaved(await _recentLibraryAssets());
     }
     final AssetPathEntity all = paths.first;
     int total = 0;
@@ -112,11 +112,57 @@ class PhotoService {
       }
       page++;
     }
-    // Safety net: only photos the user added through the app belong here.
-    return assets.where((AssetEntity a) {
-      final String path = (a.relativePath ?? '').replaceAll('\\', '/');
-      return path.startsWith('$libraryRoot/');
-    }).toList(growable: false);
+    List<AssetEntity> result = assets.where(_inLibrary).toList();
+    if (result.isEmpty) {
+      result = await _recentLibraryAssets();
+    }
+    return _withSessionSaved(result);
+  }
+
+  /// Photos saved during this session always show up right away.
+  List<AssetEntity> _withSessionSaved(List<AssetEntity> result) {
+    final Set<String> ids = result.map((AssetEntity a) => a.id).toSet();
+    return <AssetEntity>[
+      for (final AssetEntity a in _sessionSaved)
+        if (!ids.contains(a.id)) a,
+      ...result,
+    ];
+  }
+
+  bool _inLibrary(AssetEntity a) {
+    final String path = (a.relativePath ?? '').replaceAll('\\', '/');
+    return path.startsWith('$libraryRoot/');
+  }
+
+  /// Bounded fallback: looks only at the most recent photos.
+  Future<List<AssetEntity>> _recentLibraryAssets() async {
+    final List<AssetPathEntity> paths = await PhotoManager.getAssetPathList(
+      onlyAll: true,
+      type: RequestType.image,
+      filterOption: FilterOptionGroup(
+        orders: <OrderOption>[
+          const OrderOption(type: OrderOptionType.createDate, asc: false),
+        ],
+      ),
+    );
+    if (paths.isEmpty) {
+      return const <AssetEntity>[];
+    }
+    final List<AssetEntity> found = <AssetEntity>[];
+    for (int page = 0; page < 3; page++) {
+      final List<AssetEntity> batch = await paths.first.getAssetListPaged(
+        page: page,
+        size: AppConstants.pageSize,
+      );
+      if (batch.isEmpty) {
+        break;
+      }
+      found.addAll(batch.where(_inLibrary));
+      if (batch.length < AppConstants.pageSize) {
+        break;
+      }
+    }
+    return found;
   }
 
   static const String libraryRoot = 'Pictures/J-Pix';
@@ -281,6 +327,8 @@ class PhotoService {
   /// Why the last [saveImageBytes] call failed (null when it worked).
   String? lastSaveError;
 
+  final List<AssetEntity> _sessionSaved = <AssetEntity>[];
+
   Future<AssetEntity?> saveImageBytes(
     Uint8List bytes,
     String filename, {
@@ -288,12 +336,14 @@ class PhotoService {
   }) async {
     try {
       lastSaveError = null;
-      return await PhotoManager.editor.saveImage(
+      final AssetEntity entity = await PhotoManager.editor.saveImage(
         bytes,
         filename: filename,
         title: filename,
         relativePath: relativePath,
       );
+      _sessionSaved.insert(0, entity);
+      return entity;
     } catch (error) {
       lastSaveError = error.toString();
       return null;

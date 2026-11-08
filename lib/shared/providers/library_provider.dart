@@ -942,6 +942,14 @@ class LibraryController extends Notifier<LibraryState> {
     }
     if (saved > 0) {
       _photo.clearThumbnailCache();
+      // The gallery listener may already be refreshing; wait for it, then
+      // refresh again so every new photo is in the library before it is
+      // organized.
+      int waited = 0;
+      while (_refreshing && waited < 50) {
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+        waited++;
+      }
       await refresh();
       for (final MapEntry<AssetEntity, AiIdentification> entry in identified) {
         try {
@@ -949,6 +957,9 @@ class LibraryController extends Notifier<LibraryState> {
             identification: entry.value,
             assetId: entry.key.id,
           );
+          if (state.records[entry.key.id]?.organizedAt == null) {
+            anyUnidentified = true;
+          }
         } catch (_) {
           anyUnidentified = true;
         }
