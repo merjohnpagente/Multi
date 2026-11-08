@@ -880,6 +880,9 @@ class LibraryController extends Notifier<LibraryState> {
   /// Why the last import failed (null when it worked).
   String? lastImportError;
 
+  /// How many photos of the last import were identified by the online AI.
+  int lastImportOnlineCount = 0;
+
   /// Whether the last import used the online AI (Gemini).
   bool get onlineAiEnabled => _ai.onlineEnabled;
 
@@ -891,6 +894,7 @@ class LibraryController extends Notifier<LibraryState> {
   Future<int> importPhotos(List<MapEntry<String, Uint8List>> items) async {
     int saved = 0;
     lastImportError = null;
+    lastImportOnlineCount = 0;
     final List<MapEntry<AssetEntity, AiIdentification>> identified =
         <MapEntry<AssetEntity, AiIdentification>>[];
     bool anyUnidentified = false;
@@ -912,6 +916,9 @@ class LibraryController extends Notifier<LibraryState> {
           thorough: true,
           extension: normalizedExtension(name, null),
         );
+        if (_ai.lastUsedOnline) {
+          lastImportOnlineCount++;
+        }
       } catch (_) {
         result = null;
         anyUnidentified = true;

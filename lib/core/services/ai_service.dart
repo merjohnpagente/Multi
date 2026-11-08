@@ -45,6 +45,9 @@ class AiService {
   /// Reason the last online attempt failed (null when it worked or was skipped).
   String? lastOnlineError;
 
+  /// True when the last classification was done by the online AI.
+  bool lastUsedOnline = false;
+
   bool get onlineEnabled => (onlineApiKey ?? '').trim().isNotEmpty;
 
   bool get isReady => _general != null;
@@ -131,8 +134,10 @@ class AiService {
       throw AiException('The selected image is empty.');
     }
 
+    lastUsedOnline = false;
     final AiIdentification? online = await _classifyOnline(bytes, extension);
     if (online != null) {
+      lastUsedOnline = true;
       return online;
     }
 

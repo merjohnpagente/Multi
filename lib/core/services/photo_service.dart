@@ -95,13 +95,16 @@ class PhotoService {
       }
       page++;
     }
-    // Exported folders are copies for the user; keep them out of the library.
-    return assets
-        .where((AssetEntity a) =>
-            !(a.relativePath ?? '').contains(exportRoot))
-        .toList(growable: false);
+    // Only photos the user added through the app (Pictures/J-Pix/...) belong
+    // to the library. Everything else in the phone gallery is ignored, and the
+    // exported copies in "J-Pix Export" are kept out too.
+    return assets.where((AssetEntity a) {
+      final String path = (a.relativePath ?? '').replaceAll('\\', '/');
+      return path.startsWith('$libraryRoot/');
+    }).toList(growable: false);
   }
 
+  static const String libraryRoot = 'Pictures/J-Pix';
   static const String exportRoot = 'J-Pix Export';
 
   /// Copies photos into Pictures/J-Pix Export/<folder>. Returns saved count.
