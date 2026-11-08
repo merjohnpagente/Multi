@@ -58,15 +58,32 @@ class PhotoService {
   Future<List<AssetEntity>> loadImageAssets({
     AssetProgress? onProgress,
   }) async {
-    final List<AssetPathEntity> paths = await PhotoManager.getAssetPathList(
-      onlyAll: true,
-      type: RequestType.image,
-      filterOption: FilterOptionGroup(
-        orders: <OrderOption>[
-          const OrderOption(type: OrderOptionType.createDate, asc: false),
-        ],
-      ),
-    );
+    // Ask the phone only for photos inside Pictures/J-Pix/ so loading stays
+    // fast no matter how many other photos are in the gallery.
+    List<AssetPathEntity> paths;
+    try {
+      paths = await PhotoManager.getAssetPathList(
+        onlyAll: true,
+        type: RequestType.image,
+        filterOption: CustomFilter.sql(
+          where:
+              "${CustomColumns.android.relativePath} LIKE '$libraryRoot/%'",
+          orderBy: <OrderByItem>[
+            OrderByItem.desc(CustomColumns.base.createDate),
+          ],
+        ),
+      );
+    } catch (_) {
+      paths = await PhotoManager.getAssetPathList(
+        onlyAll: true,
+        type: RequestType.image,
+        filterOption: FilterOptionGroup(
+          orders: <OrderOption>[
+            const OrderOption(type: OrderOptionType.createDate, asc: false),
+          ],
+        ),
+      );
+    }
     if (paths.isEmpty) {
       return const <AssetEntity>[];
     }
@@ -95,9 +112,7 @@ class PhotoService {
       }
       page++;
     }
-    // Only photos the user added through the app (Pictures/J-Pix/...) belong
-    // to the library. Everything else in the phone gallery is ignored, and the
-    // exported copies in "J-Pix Export" are kept out too.
+    // Safety net: only photos the user added through the app belong here.
     return assets.where((AssetEntity a) {
       final String path = (a.relativePath ?? '').replaceAll('\\', '/');
       return path.startsWith('$libraryRoot/');
