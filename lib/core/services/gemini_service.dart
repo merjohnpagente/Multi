@@ -82,7 +82,20 @@ class GeminiService {
     GeminiException? lastError;
     for (final String model in _models) {
       try {
-        final String text = await _generate(model, apiKey, body);
+        String text;
+        try {
+          text = await _generate(model, apiKey, body);
+        } on GeminiException catch (first) {
+          if (!first.isAuthError) {
+            rethrow;
+          }
+          // Some key types are only accepted as a query parameter.
+          try {
+            text = await _generate(model, apiKey, body, keyInQuery: true);
+          } on GeminiException {
+            throw first;
+          }
+        }
         final AiIdentification result =
             _parse(text, extension, stopwatch.elapsedMilliseconds);
         return result;
@@ -97,17 +110,25 @@ class GeminiService {
     throw lastError ?? GeminiException('Gemini request failed.');
   }
 
-  Future<String> _generate(String model, String apiKey, String body) async {
+  Future<String> _generate(
+    String model,
+    String apiKey,
+    String body, {
+    bool keyInQuery = false,
+  }) async {
     final HttpClient client = HttpClient()
       ..connectionTimeout = const Duration(seconds: 15);
     try {
       final Uri uri = Uri.parse(
         'https://generativelanguage.googleapis.com/v1beta/models/'
-        '$model:generateContent',
+        '$model:generateContent'
+        '${keyInQuery ? '?key=${Uri.encodeQueryComponent(apiKey)}' : ''}',
       );
       final HttpClientRequest request = await client.postUrl(uri);
       request.headers.set('Content-Type', 'application/json');
-      request.headers.set('x-goog-api-key', apiKey);
+      if (!keyInQuery) {
+        request.headers.set('x-goog-api-key', apiKey);
+      }
       request.add(utf8.encode(body));
       final HttpClientResponse response =
           await request.close().timeout(const Duration(seconds: 40));
