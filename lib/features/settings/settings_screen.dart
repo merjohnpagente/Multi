@@ -256,9 +256,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 title: 'Online AI (Gemini)',
                 subtitle: 'More accurate photo detection. Needs internet.',
               ),
-              _SettingsGroup(
+              const _SettingsGroup(
                 children: <Widget>[
-                  const _OnlineAiTile(),
+                  _OnlineAiTile(),
                 ],
               ),
               const _SectionTitle(
