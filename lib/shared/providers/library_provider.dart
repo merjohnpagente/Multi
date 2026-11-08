@@ -997,18 +997,19 @@ class LibraryController extends Notifier<LibraryState> {
     return saved;
   }
 
+  /// One folder per category, e.g. Pictures/J-Pix/Animals, so it shows up in
+  /// the phone gallery as an album named "Animals".
   String _folderFor(AiIdentification result) {
-    String clean(String value) =>
-        value.replaceAll(RegExp(r'[\\/:*?"<>|]'), ' ').replaceAll(RegExp(r'\s+'), ' ').trim();
     if (result.uncertain) {
       return 'Pictures/J-Pix/Other';
     }
-    final String category = clean(result.category.label);
-    final String sub = clean(result.subcategory);
-    if (sub.isEmpty || sub.toLowerCase() == category.toLowerCase()) {
-      return 'Pictures/J-Pix/$category';
-    }
-    return 'Pictures/J-Pix/$category/$sub';
+    final String category = result.category.label
+        .replaceAll(RegExp(r'[\\/:*?"<>|]'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    return category.isEmpty
+        ? 'Pictures/J-Pix/Other'
+        : 'Pictures/J-Pix/$category';
   }
 
   Future<AiIdentification?> analyzeAsset(AssetEntity asset) async {
