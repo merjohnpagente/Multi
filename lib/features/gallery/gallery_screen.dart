@@ -261,8 +261,9 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen> {
                 ? 'Could not add the photos. ${importError ?? ''}'.trim()
                 : onlineError != null
                     ? '$saved added using offline AI. Online AI: $onlineError'
-                    : '$saved ${saved == 1 ? 'photo' : 'photos'} added and '
-                        'sorted into folders (${controller.lastImportOnlineCount > 0 ? 'online AI: ${controller.lastImportOnlineCount}' : 'offline AI'}).',
+                    : '$saved ${saved == 1 ? 'photo' : 'photos'} organized into '
+                        '${controller.lastImportFolders.join(', ')} '
+                        '(${controller.lastImportOnlineCount > 0 ? 'online AI' : 'offline AI'}).',
           ),
         ),
       );

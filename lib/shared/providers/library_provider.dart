@@ -244,6 +244,7 @@ class LibraryController extends Notifier<LibraryState> {
   bool _initialized = false;
   bool _initializing = false;
   bool _refreshing = false;
+  bool _refreshQueued = false;
   bool _analyzing = false;
   bool _backgroundRunning = false;
   bool _listeningForChanges = false;
@@ -426,6 +427,9 @@ class LibraryController extends Notifier<LibraryState> {
       return;
     }
     if (_refreshing || _disposed) {
+      if (!_disposed) {
+        _refreshQueued = true;
+      }
       return;
     }
     _refreshing = true;
@@ -482,6 +486,10 @@ class LibraryController extends Notifier<LibraryState> {
       );
     } finally {
       _refreshing = false;
+      if (_refreshQueued && !_disposed) {
+        _refreshQueued = false;
+        unawaited(refresh());
+      }
     }
   }
 
@@ -889,15 +897,21 @@ class LibraryController extends Notifier<LibraryState> {
   /// Last problem reported by the online AI, if any.
   String? get lastOnlineError => _ai.lastOnlineError;
 
+  /// Folders used by the last import, e.g. "Animals/Dogs".
+  Set<String> lastImportFolders = <String>{};
+
   /// Identifies each picked image first, then saves it into a real folder on
-  /// the phone: Pictures/J-Pix/<Category>/<Subcategory>.
+  /// the phone: Pictures/J-Pix/<Category>/<Subcategory>. Everything happens
+  /// automatically; the result is written to the database right away so the
+  /// app's categories never depend on a later refresh.
   Future<int> importPhotos(List<MapEntry<String, Uint8List>> items) async {
     int saved = 0;
     lastImportError = null;
     lastImportOnlineCount = 0;
-    final List<MapEntry<AssetEntity, AiIdentification>> identified =
-        <MapEntry<AssetEntity, AiIdentification>>[];
-    bool anyUnidentified = false;
+    lastImportFolders = <String>{};
+    final List<AssetEntity> savedEntities = <AssetEntity>[];
+    final Map<String, AiIdentification> identified =
+        <String, AiIdentification>{};
     for (final MapEntry<String, Uint8List> item in items) {
       String name = item.key.trim().isEmpty ? 'photo' : item.key.trim();
       if (!RegExp(r'\.(jpe?g|png|webp|heic|heif|gif|bmp)$',
@@ -921,7 +935,6 @@ class LibraryController extends Notifier<LibraryState> {
         }
       } catch (_) {
         result = null;
-        anyUnidentified = true;
       }
 
       final String folder =
@@ -933,41 +946,54 @@ class LibraryController extends Notifier<LibraryState> {
       );
       if (entity != null) {
         saved++;
+        savedEntities.add(entity);
+        lastImportFolders.add(folder.replaceFirst('Pictures/J-Pix/', ''));
         if (result != null) {
-          identified.add(MapEntry<AssetEntity, AiIdentification>(entity, result));
+          identified[entity.id] = result;
         }
       } else {
         lastImportError = _photo.lastSaveError ?? 'Could not save the photo.';
       }
     }
-    if (saved > 0) {
-      _photo.clearThumbnailCache();
-      // The gallery listener may already be refreshing; wait for it, then
-      // refresh again so every new photo is in the library before it is
-      // organized.
-      int waited = 0;
-      while (_refreshing && waited < 50) {
-        await Future<void>.delayed(const Duration(milliseconds: 200));
-        waited++;
-      }
-      await refresh();
-      for (final MapEntry<AssetEntity, AiIdentification> entry in identified) {
-        try {
-          await saveAiResult(
-            identification: entry.value,
-            assetId: entry.key.id,
-          );
-          if (state.records[entry.key.id]?.organizedAt == null) {
-            anyUnidentified = true;
-          }
-        } catch (_) {
-          anyUnidentified = true;
-        }
-      }
-      if (anyUnidentified) {
-        unawaited(analyzePending(force: true));
-      }
+    if (saved == 0) {
+      return 0;
     }
+
+    _photo.clearThumbnailCache();
+    // Register the new photos and store their AI result directly.
+    try {
+      await _db.syncPhotoRecords(
+        savedEntities.map(_recordFromAsset).toList(growable: false),
+        pruneMissing: false,
+      );
+      final DateTime now = DateTime.now();
+      for (final MapEntry<String, AiIdentification> entry
+          in identified.entries) {
+        final AiIdentification result = entry.value;
+        await _db.saveAnalysis(
+          assetId: entry.key,
+          identification: result,
+          result: AiResultRecord(
+            key: 'asset:${entry.key}',
+            assetId: entry.key,
+            filePath: null,
+            primaryLabel: result.primaryLabel,
+            category: result.category,
+            subcategory: result.subcategory,
+            confidence: result.confidence,
+            description: result.description,
+            suggestedFilename: result.suggestedFilename,
+            labels: result.labels,
+            createdAt: now,
+          ),
+          cameraMake: null,
+          cameraModel: null,
+        );
+      }
+    } catch (_) {
+      lastImportError = 'Saved, but could not update the app categories.';
+    }
+    await refresh();
     return saved;
   }
 
