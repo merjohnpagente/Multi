@@ -8,6 +8,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/services/settings_service.dart';
 import '../../core/utilities/formatters.dart';
 import '../../shared/providers/library_provider.dart';
+import '../../core/services/ai_service.dart';
 import '../../shared/providers/service_providers.dart';
 import '../../shared/providers/settings_provider.dart';
 
@@ -255,21 +256,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 title: 'Online AI (Gemini)',
                 subtitle: 'More accurate photo detection. Needs internet.',
               ),
-              _SettingsGroup(
+              const _SettingsGroup(
                 children: <Widget>[
-                  ListTile(
-                    leading: const _TileIcon(icon: Icons.cloud_outlined),
-                    title: Text(
-                      ref.watch(aiServiceProvider).onlineEnabled
-                          ? 'Online AI is on'
-                          : 'Online AI is off',
-                    ),
-                    subtitle: Text(
-                      ref.watch(aiServiceProvider).onlineEnabled
-                          ? 'Photos are identified with Gemini first, with the offline models as backup.'
-                          : 'Using offline AI only.',
-                    ),
-                  ),
+                  _OnlineAiTile(),
                 ],
               ),
               const _SectionTitle(
@@ -568,3 +557,84 @@ class _TileIcon extends StatelessWidget {
   }
 }
 
+
+
+class _OnlineAiTile extends ConsumerStatefulWidget {
+  const _OnlineAiTile();
+
+  @override
+  ConsumerState<_OnlineAiTile> createState() => _OnlineAiTileState();
+}
+
+class _OnlineAiTileState extends ConsumerState<_OnlineAiTile> {
+  bool _busy = false;
+  String? _result;
+
+  Future<void> _test() async {
+    final AiService ai = ref.read(aiServiceProvider);
+    setState(() {
+      _busy = true;
+      _result = null;
+    });
+    final String? error = await ai.testOnlineKey(ai.onlineApiKey ?? '');
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      _busy = false;
+      _result = error == null
+          ? 'Online AI works. Gemini will identify the photos you add.'
+          : 'Online AI failed: $error';
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bool enabled = ref.watch(aiServiceProvider).onlineEnabled;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              const _TileIcon(icon: Icons.cloud_outlined),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  enabled ? 'Online AI is on' : 'Online AI is off',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            enabled
+                ? 'Photos are identified with Gemini first, with the offline '
+                    'models as backup.'
+                : 'No key was found in this build. Using offline AI only.',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          if (enabled) ...<Widget>[
+            const SizedBox(height: 12),
+            FilledButton(
+              onPressed: _busy ? null : _test,
+              child: _busy
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Test online AI'),
+            ),
+          ],
+          if (_result != null) ...<Widget>[
+            const SizedBox(height: 10),
+            Text(_result!, style: Theme.of(context).textTheme.bodySmall),
+          ],
+        ],
+      ),
+    );
+  }
+}
